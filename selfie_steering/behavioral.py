@@ -82,6 +82,7 @@ def main():
     ap.add_argument("--n-distractors", type=int, default=40)
     ap.add_argument("--embedder", default="thenlper/gte-large")
     ap.add_argument("--out", default="results/behavioral.parquet")
+    ap.add_argument("--summary-out", default="results/behavioral_summary.parquet")
     ap.add_argument("--gen-out", default="results/behavioral_generations.parquet")
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--smoke", action="store_true")
@@ -93,6 +94,7 @@ def main():
         a.n_prompts, a.max_new_tokens = 3, 16
         a.embedder = "sentence-transformers/all-MiniLM-L6-v2"
         a.out, a.gen_out = "results/smoke_behavioral.parquet", "results/smoke_behavioral_gen.parquet"
+        a.summary_out = "results/smoke_behavioral_summary.parquet"
 
     blob = torch.load(a.vectors, weights_only=False)
     uids, labels = blob["uids"], blob["labels"]
@@ -163,11 +165,11 @@ def main():
         summ.append({"uid": uid, "label": g.label.iloc[0], "rise": rise,
                      "monotonicity": mono, "fluency_ok": d2_ok})
     s = pd.DataFrame(summ).sort_values("rise", ascending=False)
-    s.to_parquet("results/behavioral_summary.parquet", index=False)
+    s.to_parquet(a.summary_out, index=False)
     print("\n--- screening summary (top 15 by rise in rank_pct) ---")
     print(s.head(15).to_string(index=False))
     print(f"\nCONTROLS: __STYLE__ and __RANDOM__ should sit near the BOTTOM.")
-    print(f"wrote {a.out}, {a.gen_out}, results/behavioral_summary.parquet")
+    print(f"wrote {a.out}, {a.gen_out}, {a.summary_out}")
 
 
 if __name__ == "__main__":

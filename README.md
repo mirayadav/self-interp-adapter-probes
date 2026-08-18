@@ -33,7 +33,7 @@ circuits is the natural next step and is explicitly out of scope.
 |---|---|---|
 | 0. adapter geometry (laptop) | **done** | `results/phase0_findings.md` |
 | 3a-prep. concept catalog + confound audit | **done** | `results/phase3a_style_confound.md` |
-| code drafts + smoke tests | **done** | `selfie_steering/` |
+| code drafts + smoke tests | **done** — all 6 modules run end-to-end on CPU | `selfie_steering/` |
 | 2. reproduce recall@k | needs GPU | `results/repro.json` |
 | 3. the extension | needs GPU | `results/analysis.json` |
 
