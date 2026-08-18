@@ -6,3 +6,8 @@ results/smoke_*
 
 # regenerable from HF via selfie_steering/concepts.py (73MB)
 data/axbench/concept_pairs.parquet
+
+# secrets — never commit
+.env
+.env.*
+*.token
