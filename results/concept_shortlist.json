@@ -1,0 +1,422 @@
+[
+  {
+    "uid":"2b\/l10:21",
+    "label":"scientific terms related to biological processes and conditions",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"cellular, akin, homeostasis, metabolic, processes, interactions, pathways, biological, energy, ecosystem"
+  },
+  {
+    "uid":"9b\/l20:15",
+    "label":"references to big data technologies and hadron physics",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"data, particle, akin, physics, hadron, like, big, datasets, vast, particles"
+  },
+  {
+    "uid":"9b\/l20:43",
+    "label":"references to the spread and classification of plant viruses",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"plant, viruses, viral, classification, understanding, spread, pathogens, just, transmission, akin"
+  },
+  {
+    "uid":"9b\/l20:47",
+    "label":"references related to the celebration of labor and Workers' Day",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"workers, labor, day, spirit, contributions, like, rights, collective, just, efforts"
+  },
+  {
+    "uid":"9b\/l20:50",
+    "label":"terms related to mental health issues and emotional distress",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"emotional, feelings, anxiety, turmoil, mental, individuals, resilience, distress, sense, psychological"
+  },
+  {
+    "uid":"2b\/l20:484",
+    "label":"references to temperature measurements and conditions in scientific contexts",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"temperature, conditions, thermal, akin, heat, like, temperatures, just, scientific, fluctuations"
+  },
+  {
+    "uid":"2b\/l20:486",
+    "label":"references to user data management and privacy practices",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"data, information, user, privacy, personal, practices, just, ensuring, safeguarding, transparency"
+  },
+  {
+    "uid":"9b\/l31:436",
+    "label":"references to sports teams and fantasy sports concepts",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"like, fantasy, team, just, league, championship, draft, players, player, game"
+  },
+  {
+    "uid":"2b\/l10:73",
+    "label":"user interface elements and their properties",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"user, interface, experience, like, akin, buttons, users, button, properties, just"
+  },
+  {
+    "uid":"2b\/l10:81",
+    "label":"references to gels and other gel-related materials",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"gel, like, gels, just, akin, various, substances, properties, materials, reminiscent"
+  },
+  {
+    "uid":"2b\/l10:90",
+    "label":"technical specifications related to electronic displays and devices",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"display, resolution, devices, refresh, displays, akin, clarity, electronic, rates, high"
+  },
+  {
+    "uid":"2b\/l10:43",
+    "label":"expressions of excitement or enthusiasm",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"just, oh, wow, thrilling, like, exhilarating, imagine, joy, absolutely, vibrant"
+  },
+  {
+    "uid":"2b\/l10:44",
+    "label":"references to notable inventions and their inventors, particularly in aviation and mechanical devices",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"like, brothers, wright, flight, just, mechanical, aircraft, aviation, akin, devices"
+  },
+  {
+    "uid":"2b\/l10:47",
+    "label":"academic terms and concepts related to statistical analysis methods",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"analysis, regression, statistical, akin, variables, hypothesis, testing, statistics, correlation, data"
+  },
+  {
+    "uid":"2b\/l10:54",
+    "label":"phrases that prompt user interaction, particularly clicking on links or buttons",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"click, discover, explore, curious, don, miss, learn, dive, tap, button"
+  },
+  {
+    "uid":"2b\/l20:492",
+    "label":"references to genes and gene-related terms",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"genetic, traits, akin, gene, like, genes, expression, alleles, sequences, just"
+  },
+  {
+    "uid":"9b\/l20:3",
+    "label":"terms related to online gambling and casinos",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"stakes, like, high, game, jackpot, akin, bets, just, casino, odds"
+  },
+  {
+    "uid":"2b\/l20:463",
+    "label":"calls to action for clicking links or buttons",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"click, don, miss, discover, button, explore, tap, dive, learn, fascinating"
+  },
+  {
+    "uid":"2b\/l20:471",
+    "label":"elements related to narrative and storytelling",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"narrative, tale, tales, tapestry, journey, like, story, character, saga, characters"
+  },
+  {
+    "uid":"2b\/l20:473",
+    "label":"content related to weekends and Sunday activities",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"weekend, sunday, leisurely, friends, just, enjoying, perfect, weekends, afternoon, brunch"
+  },
+  {
+    "uid":"2b\/l20:478",
+    "label":"terms related to VPNs and proxy services",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"secure, data, proxy, like, just, akin, online, vpn, network, access"
+  },
+  {
+    "uid":"9b\/l31:396",
+    "label":"phrases and terms related to data structures and spreadsheet management",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"data, spreadsheet, akin, like, structure, nodes, structured, similar, ensuring, unique"
+  },
+  {
+    "uid":"2b\/l10:115",
+    "label":"references to seasonal changes and their effects on food availability and other aspects of life",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"seasons, just, winter, like, seasonal, harvest, life, nature, spring, autumn"
+  },
+  {
+    "uid":"9b\/l31:401",
+    "label":"references to nanoparticles and their preparation or isolation methods",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"nanoparticles, techniques, methods, synthesis, isolation, like, just, akin, preparation, materials"
+  },
+  {
+    "uid":"9b\/l31:420",
+    "label":"various forms of comparison, particularly focusing on distinctions and oppositions",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"contrast, contrasting, like, stark, stands, distinct, showcasing, opposition, compared, distinction"
+  },
+  {
+    "uid":"9b\/l31:423",
+    "label":"terms related to confessions and admissions of wrongdoing",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"admission, acknowledgment, accountability, past, like, revealing, akin, truth, actions, truths"
+  },
+  {
+    "uid":"9b\/l31:434",
+    "label":"mentions of awards and nominations related to performances in the film and television industry",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"accolades, performances, nominations, like, film, recognition, celebrated, award, awards, prestigious"
+  },
+  {
+    "uid":"9b\/l20:56",
+    "label":"references to movie trailers and preview content",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"like, trailer, cinematic, just, movie, preview, viewers, trailers, film, akin"
+  },
+  {
+    "uid":"9b\/l20:59",
+    "label":"economic terms related to taxes and subsidies",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"economic, tax, fiscal, incentives, subsidies, financial, market, akin, policies, like"
+  },
+  {
+    "uid":"9b\/l20:61",
+    "label":"clinical terms and measurements related to health and biological effects",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"health, metrics, biological, physiological, responses, akin, outcomes, overall, levels, clinical"
+  },
+  {
+    "uid":"9b\/l20:69",
+    "label":"references to unspecified or vague concepts and ideas",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"essence, realm, tapestry, elusive, shadows, mere, notions, dance, broader, myriad"
+  },
+  {
+    "uid":"2b\/l20:442",
+    "label":"elements related to immersive reading experiences and emotional engagement with characters",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"characters, like, narrative, character, emotional, readers, connection, tapestry, journey, tale"
+  },
+  {
+    "uid":"2b\/l20:452",
+    "label":"information about events and activities in a community, including announcements, tours, and concerts.",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"community, local, gatherings, events, announcements, tours, concerts, activities, vibrant, music"
+  },
+  {
+    "uid":"2b\/l20:455",
+    "label":"greetings and informal salutations",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"hey, like, just, cheers, hello, hope, friendly, say, day, warm"
+  },
+  {
+    "uid":"9b\/l20:73",
+    "label":"phrases related to reading, reviewing, and managing books or other written content",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"narrative, like, pages, akin, library, chapters, chapter, narratives, book, literary"
+  },
+  {
+    "uid":"9b\/l20:85",
+    "label":"names of authors and their affiliations in academic papers",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"university, authors, research, academic, affiliations, smith, institute, contributions, institutions, akin"
+  },
+  {
+    "uid":"9b\/l20:100",
+    "label":"references to patents and their associated details such as dates granted or issued",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"patent, patents, granted, issued, like, akin, innovations, specific, date, dates"
+  },
+  {
+    "uid":"9b\/l20:101",
+    "label":"technical terms and expressions related to medical conditions and treatments",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"akin, treatment, therapeutic, patient, health, conditions, medical, chronic, interventions, clinical"
+  },
+  {
+    "uid":"2b\/l20:427",
+    "label":"phrases related to repetitive actions or follow-up events",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"time, like, cycle, repeatedly, just, echoing, following, leading, consistently, follow"
+  },
+  {
+    "uid":"2b\/l20:428",
+    "label":"phrases conveying medical conditions and the presence of pain",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"discomfort, like, ache, akin, chronic, distress, throbbing, persistent, weight, relief"
+  },
+  {
+    "uid":"2b\/l20:431",
+    "label":"references to team performance and ranking in sports",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"team, like, sports, teams, performance, rankings, akin, championship, just, competitive"
+  },
+  {
+    "uid":"2b\/l20:433",
+    "label":"references to folder revisions and their management",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"folder, revisions, just, management, changes, like, akin, ensuring, updates, versions"
+  },
+  {
+    "uid":"9b\/l31:366",
+    "label":"references to genetic processes and their functions",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"genetic, traits, akin, intricate, just, expression, cellular, processes, genes, gene"
+  },
+  {
+    "uid":"2b\/l10:128",
+    "label":"references to specific sections or equations within a paper",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"section, equation, sections, analysis, paper, outlined, specific, discussed, equations, referenced"
+  },
+  {
+    "uid":"2b\/l10:150",
+    "label":"terms related to \"green\" products and environmental themes",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"eco, sustainable, practices, friendly, renewable, resources, initiatives, sustainability, promoting, environmental"
+  },
+  {
+    "uid":"9b\/l31:372",
+    "label":"specific medical terms and data related to patient demographics and treatment protocols",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"patient, treatment, protocols, demographics, health, outcomes, specific, demographic, healthcare, medical"
+  },
+  {
+    "uid":"9b\/l31:388",
+    "label":"references to hand movements and gestures",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"gestures, hands, like, fingers, hand, gesture, motion, wave, motions, imagine"
+  },
+  {
+    "uid":"9b\/l31:391",
+    "label":"terms related to chess and its components",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"like, board, game, pieces, akin, pawns, checkmate, strategy, strategic, knight"
+  },
+  {
+    "uid":"9b\/l31:393",
+    "label":"references to artichokes and related food terms",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"like, artichoke, dish, artichokes, just, layers, culinary, tender, flavors, akin"
+  },
+  {
+    "uid":"2b\/l20:435",
+    "label":"terms related to clinical trials and research results",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"clinical, outcomes, research, data, akin, trial, results, trials, study, efficacy"
+  },
+  {
+    "uid":"9b\/l20:104",
+    "label":"elements of personal experience and emotional state",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"like, sense, moments, nostalgia, memories, joy, feel, life, connection, heart"
+  },
+  {
+    "uid":"9b\/l20:111",
+    "label":"phrases related to service and customer support",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"experience, support, satisfaction, ensuring, customer, inquiries, service, assistance, enhance, commitment"
+  },
+  {
+    "uid":"9b\/l20:117",
+    "label":"key terms related to scientific research and discussions about medical conditions",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"health, medical, conditions, research, clinical, studies, akin, outcomes, understanding, discussions"
+  },
+  {
+    "uid":"9b\/l20:121",
+    "label":"conversational expressions or discourse markers",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"know, quite, right, really, think, mean, just, interesting, oh, way"
+  },
+  {
+    "uid":"2b\/l20:396",
+    "label":"references to legal procedures and rights",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"legal, rights, akin, frameworks, ensuring, individuals, just, entitlements, justice, framework"
+  },
+  {
+    "uid":"2b\/l10:171",
+    "label":"phrases related to acceptance and understanding in relationships",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"understanding, just, like, embrace, relationships, shared, connection, embracing, differences, acceptance"
+  },
+  {
+    "uid":"2b\/l10:174",
+    "label":"exclamatory phrases and expressions of strong emotion or emphasis",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"believe, wow, incredible, oh, absolutely, just, like, amazing, thrilling, truly"
+  },
+  {
+    "uid":"2b\/l10:176",
+    "label":"terms related to gene expression and regulation in biological studies",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"expression, gene, transcription, regulatory, factors, akin, cellular, pathways, intricate, regulation"
+  },
+  {
+    "uid":"9b\/l31:314",
+    "label":"references to experimental data and measurements related to biological processes",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"biological, processes, experimental, cellular, akin, measurements, responses, studies, data, interactions"
+  },
+  {
+    "uid":"9b\/l31:326",
+    "label":"references to Vietnam and its people",
+    "genre":"text",
+    "separability_auc":1.0,
+    "top_tokens":"vietnam, vietnamese, like, people, resilience, spirit, history, just, vibrant, culture"
+  }
+]
