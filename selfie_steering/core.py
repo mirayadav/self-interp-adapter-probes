@@ -70,8 +70,14 @@ def load_lm(name: str, layer: int, device: Optional[str] = None,
     if tok.pad_token is None:
         tok.pad_token = tok.eos_token
     tok.padding_side = "left"
-    model = AutoModelForCausalLM.from_pretrained(
-        name, torch_dtype=dtype, device_map=device if device == "cuda" else None)
+    # transformers>=5 renamed torch_dtype -> dtype; support both
+    import inspect
+    kw = {"device_map": device} if device == "cuda" else {}
+    if "dtype" in inspect.signature(AutoModelForCausalLM.from_pretrained).parameters:
+        kw["dtype"] = dtype
+    else:
+        kw["torch_dtype"] = dtype
+    model = AutoModelForCausalLM.from_pretrained(name, **kw)
     if device != "cuda":
         model = model.to(device)
     model.eval()

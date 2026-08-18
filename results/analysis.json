@@ -1,0 +1,30 @@
+{
+  "n_generations": 79206,
+  "variance_decomposition": {
+    "n": 19800,
+    "second_moment": 1.000288486480713,
+    "prior_share": 0.7184893793704419,
+    "variance_share": 0.2815105312483762,
+    "factors": {
+      "concept": 0.011744209322182605,
+      "topic": 0.3144105690325529,
+      "lam": 0.00752509914908933,
+      "residual": 0.6663201224961752
+    }
+  },
+  "sensitivity": {
+    "selfie_lambda50_concept": 0.5959398496240599,
+    "selfie_lambda50_random": 0.16750000000000642,
+    "selfie_lambda50_style": 1.7499999999995504,
+    "selfie_lambda50_pure_v": 0.15015654351909824,
+    "behavioral_lambda50": 0.5762478485370053
+  },
+  "bias_only_descriptions": [
+    "the dramatic style characterized by monologues and verse",
+    "the director of the 1967 film Blow-Up",
+    "the director of the world's first permanent film studio",
+    "the journalist who coined the term 'tropism'",
+    "the director of the International System of Units",
+    "the opera singer whose voice was used in the recording of the \"Hallelujah Chorus\" in Handel's Messiah"
+  ]
+}

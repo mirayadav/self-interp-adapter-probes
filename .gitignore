@@ -11,3 +11,4 @@ data/axbench/concept_pairs.parquet
 .env
 .env.*
 *.token
+results/*_generations.parquet
