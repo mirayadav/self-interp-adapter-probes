@@ -1,0 +1,12 @@
+# Pod-side requirements (Llama-3.1-8B on a 24GB card)
+torch>=2.4
+transformers>=4.44
+accelerate>=0.20
+safetensors>=0.3
+huggingface-hub>=0.20
+datasets>=2.0
+pandas
+pyarrow
+numpy
+scikit-learn
+sentence-transformers>=2.0
