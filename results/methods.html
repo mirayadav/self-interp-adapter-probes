@@ -1,0 +1,515 @@
+<title>Bench Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+:root{
+  --ground:#F5F7F9; --surface:#FFFFFF; --surface-2:#EDF1F4;
+  --ink:#121821; --ink-soft:#57616F; --ink-faint:#828D9C;
+  --rule:#DDE3EA;
+  --signal:#0C6F79; --signal-wash:#E2EFF1;
+  --flat:#98A2B0;
+  --amber:#9C6318; --amber-wash:#F6EDE0;
+  --shadow:0 1px 2px rgba(18,24,33,.05), 0 8px 24px -12px rgba(18,24,33,.18);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0C1016; --surface:#141A23; --surface-2:#1B222D;
+    --ink:#E7ECF3; --ink-soft:#98A3B2; --ink-faint:#6E7A8A;
+    --rule:#232B37;
+    --signal:#45C8D2; --signal-wash:#0E2F35;
+    --flat:#68737F;
+    --amber:#D9A25E; --amber-wash:#2A2015;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0C1016; --surface:#141A23; --surface-2:#1B222D;
+  --ink:#E7ECF3; --ink-soft:#98A3B2; --ink-faint:#6E7A8A;
+  --rule:#232B37;
+  --signal:#45C8D2; --signal-wash:#0E2F35;
+  --flat:#68737F;
+  --amber:#D9A25E; --amber-wash:#2A2015;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  font-size:16px; line-height:1.62; -webkit-font-smoothing:antialiased;
+}
+.shell{max-width:1120px; margin:0 auto; padding:0 28px 96px}
+.cols{display:grid; grid-template-columns:1fr; gap:0}
+@media(min-width:1000px){
+  .cols{grid-template-columns:196px 1fr; gap:52px; align-items:start}
+  nav.toc{position:sticky; top:34px; display:block}
+}
+nav.toc{display:none; padding-top:8px}
+nav.toc ol{list-style:none; margin:0; padding:0; counter-reset:s}
+nav.toc li{counter-increment:s; margin-bottom:9px}
+nav.toc a{
+  display:block; text-decoration:none; color:var(--ink-soft);
+  font-size:13px; line-height:1.35; border-left:2px solid var(--rule); padding-left:11px;
+}
+nav.toc a::before{
+  content:counter(s) "."; font-family:"IBM Plex Mono",monospace; font-size:10.5px;
+  color:var(--ink-faint); margin-right:6px;
+}
+nav.toc a:hover{color:var(--signal); border-left-color:var(--signal)}
+
+/* masthead */
+header{padding:68px 0 36px; border-bottom:1px solid var(--rule); margin-bottom:40px}
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--signal); margin:0 0 18px;
+}
+h1{
+  font-family:Newsreader,Georgia,serif; font-weight:500;
+  font-size:clamp(38px,6.5vw,58px); line-height:1.05; letter-spacing:-.02em;
+  margin:0 0 18px; text-wrap:balance;
+}
+.standfirst{
+  font-family:Newsreader,Georgia,serif; font-size:clamp(17px,2.2vw,20px);
+  line-height:1.5; color:var(--ink-soft); margin:0 0 26px; max-width:62ch;
+}
+.crumbs{
+  display:flex; flex-wrap:wrap; gap:6px 24px;
+  font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink-faint);
+}
+.crumbs b{color:var(--ink-soft); font-weight:500}
+
+h2{
+  font-family:Newsreader,Georgia,serif; font-weight:500;
+  font-size:clamp(24px,3.2vw,30px); line-height:1.2; letter-spacing:-.012em;
+  margin:54px 0 6px; text-wrap:balance; scroll-margin-top:24px;
+}
+h2 .sn{
+  font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink-faint);
+  display:block; margin-bottom:7px; letter-spacing:.1em;
+}
+h3{font-size:14.5px; font-weight:600; margin:30px 0 8px}
+p{margin:0 0 15px; max-width:70ch}
+ul{max-width:70ch; padding-left:20px} li{margin-bottom:8px}
+a{color:var(--signal)}
+code,.mono{font-family:"IBM Plex Mono",monospace; font-size:.9em}
+code{background:var(--surface-2); padding:.1em .34em; border-radius:3px}
+.note{color:var(--ink-soft); font-size:14.5px}
+strong{font-weight:600}
+
+pre{
+  background:var(--surface); border:1px solid var(--rule); border-radius:4px;
+  padding:15px 17px; overflow-x:auto; font-family:"IBM Plex Mono",monospace;
+  font-size:12.5px; line-height:1.62; margin:18px 0; box-shadow:var(--shadow);
+}
+pre code{background:none; padding:0; font-size:inherit}
+
+/* tables */
+.tablewrap{overflow-x:auto; margin:20px 0}
+table{border-collapse:collapse; width:100%; font-size:14px; min-width:420px}
+caption{
+  text-align:left; font-family:"IBM Plex Mono",monospace; font-size:11px;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--ink-faint); padding-bottom:9px;
+}
+th,td{padding:8px 14px 8px 0; text-align:left; border-bottom:1px solid var(--rule); vertical-align:top}
+th{
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; font-weight:500;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint);
+}
+td.num,th.num{text-align:right; font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums}
+tr.hi td{background:var(--signal-wash)} tr.hi td:first-child{font-weight:600}
+td.flat{color:var(--ink-faint)}
+
+/* failure-mode blocks */
+.fm{
+  background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--amber);
+  border-radius:4px; padding:18px 20px; margin:16px 0; box-shadow:var(--shadow);
+}
+.fm.clean{border-left-color:var(--signal)}
+.fm .tag{
+  font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--amber); margin-bottom:6px;
+}
+.fm.clean .tag{color:var(--signal)}
+.fm h4{margin:0 0 8px; font-size:15.5px; font-weight:600; line-height:1.35}
+.fm p{margin:0 0 10px; max-width:none; font-size:14.5px}
+.fm p:last-child{margin-bottom:0}
+.fm .fix{
+  font-size:14px; color:var(--ink-soft); border-top:1px solid var(--rule);
+  padding-top:10px; margin-top:12px;
+}
+.fm .fix b{color:var(--ink)}
+
+/* funnel */
+.funnel{margin:22px 0}
+.frow{display:flex; align-items:center; gap:14px; margin-bottom:9px}
+.frow .lbl{
+  flex:none; width:190px; font-size:13.5px; color:var(--ink-soft); text-align:right;
+}
+.frow .bar{
+  height:22px; background:var(--signal); border-radius:2px; min-width:4px;
+  display:flex; align-items:center; justify-content:flex-end; padding-right:8px;
+}
+.frow .bar.dim{background:var(--flat)}
+.frow .n{
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-faint);
+  font-variant-numeric:tabular-nums; flex:none;
+}
+@media(max-width:640px){ .frow .lbl{width:110px; font-size:12px} }
+
+/* stat grid */
+.stats{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:1px; background:var(--rule); border:1px solid var(--rule);
+  border-radius:4px; overflow:hidden; margin:22px 0;
+}
+.stat{background:var(--surface); padding:15px 17px}
+.stat .k{
+  font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--ink-faint); margin-bottom:6px;
+}
+.stat .v{
+  font-family:"IBM Plex Mono",monospace; font-size:21px; font-variant-numeric:tabular-nums;
+  line-height:1.1;
+}
+.stat .v.sig{color:var(--signal)}
+.stat .sub{font-size:11.5px; color:var(--ink-faint); margin-top:4px; line-height:1.4}
+
+footer{
+  margin-top:56px; padding-top:22px; border-top:1px solid var(--rule);
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-faint); line-height:1.8;
+}
+</style>
+
+<div class="shell">
+<header>
+  <p class="eyebrow">Adapter probes · complete protocol</p>
+  <h1>Bench&nbsp;Notes</h1>
+  <p class="standfirst">Everything that was actually run: datasets and the failure modes filtered out of them, exactly what was reproduced and how it compares to the paper, every experiment added on top and why, and how it was all executed. Including the parts that broke.</p>
+  <div class="crumbs">
+    <span><b>Llama-3.1-8B-Instruct</b> · layer 19</span>
+    <span><b>79,206</b> generations</span>
+    <span><b>1×A40</b> · 1h45m · ≈$0.80</span>
+    <span><a href="https://claude.ai/code/artifact/896ab113-f65e-444f-b12b-07624c6412ab">↳ findings report</a></span>
+  </div>
+</header>
+
+<div class="cols">
+<nav class="toc">
+  <ol>
+    <li><a href="#setup">Setup</a></li>
+    <li><a href="#data">Datasets</a></li>
+    <li><a href="#failures">Failure modes</a></li>
+    <li><a href="#repro">Reproduction</a></li>
+    <li><a href="#ext">The extension</a></li>
+    <li><a href="#impl">Implementation</a></li>
+    <li><a href="#runpod">RunPod</a></li>
+    <li><a href="#limits">Limitations</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<h2 id="setup"><span class="sn">SECTION 01</span>Setup</h2>
+
+<div class="tablewrap"><table>
+<tbody>
+<tr><td>Model</td><td><code>meta-llama/Meta-Llama-3.1-8B-Instruct</code> — gated; hidden 4096, 32 layers</td></tr>
+<tr><td>Layer</td><td>19, residual stream, read as <code>hidden_states[layer+1]</code> (index 0 is the embedding output)</td></tr>
+<tr><td>Adapter</td><td><code>wikipedia-scalar-affine.safetensors</code> from <code>keenanpepper/selfie-adapters-llama-3.1-8b-instruct</code></td></tr>
+<tr><td>Adapter form</td><td><span class="mono">f(h) = α·(h/‖h‖) + b</span>, α = <b>7.175</b>, ‖b‖ = <b>20.869</b>, <code>normalize_input=true</code></td></tr>
+<tr><td>Embedder</td><td><code>thenlper/gte-large</code> — the paper's choice</td></tr>
+<tr><td>Stack</td><td>torch 2.8.0+cu128, transformers <b>5.15.0</b>, sentence-transformers 5.7.0</td></tr>
+<tr><td>Sampling</td><td>temperature 0.5, 40 new tokens, 6 generations per vector</td></tr>
+</tbody></table></div>
+
+<p><strong>No adapter was trained.</strong> The released checkpoints are used as-is, so this reproduces the paper's <em>artifact</em>, not its training run.</p>
+
+<p><strong>Extraction convention</strong>, kept identical to upstream so numbers stay comparable. Topic activations <span class="mono">h</span>: <code>"Tell me about {title}."</code> through the chat template with <code>add_generation_prompt=True</code>, last token. Contrastive vector: <span class="mono">h − mean_vector[19]</span> — this is what the adapter consumes. Concept activations (extension only): full user+assistant turn, mean-pooled over the <em>response span only</em>, located by character offsets so instruction tokens are excluded.</p>
+
+<p class="note">One code change was needed for transformers 5.x: <code>from_pretrained(torch_dtype=)</code> became <code>dtype=</code>. Handled by signature inspection so the same code runs on both.</p>
+
+<h2 id="data"><span class="sn">SECTION 02</span>Datasets</h2>
+
+<p><strong><code>keenanpepper/fifty-thousand-things</code></strong> — 49,637 Wikipedia vital-article topics with 6–20 alternate descriptions each, split 44,673 / 4,964. Public, 55 MB. Supplies both the reproduction targets and the base activations <span class="mono">h</span>. Retrieval document per topic = title + first 8 labels.</p>
+
+<p><strong><code>pyvene/axbench-concept500</code></strong> (CC-BY-4.0) — <em>not used by the paper</em>; introduced here to supply concept directions. Four partitions of 500 concepts each, drawn from GemmaScope SAE auto-interp labels. Per concept: 72 positives in <code>train</code>, plus 36 positives and 36 concept-specific negatives in <code>test</code>.</p>
+
+<p><strong>Adapters</strong> — four released 19 kB <code>.safetensors</code>, public, no auth.</p>
+
+<h2 id="failures"><span class="sn">SECTION 03</span>Failure modes found in the data</h2>
+
+<p>All found before GPU time was spent, except F7 — which needed it, and which changed the picture most.</p>
+
+<div class="fm">
+  <div class="tag">F1 · blocking</div>
+  <h4><code>load_dataset</code> cannot read AxBench at all</h4>
+  <p><code>train</code> has 7 columns, <code>test</code> has 9 (<code>sae_link</code>, <code>sae_id</code> extra), so HuggingFace <code>datasets</code> raises <code>CastError: column names don't match</code>.</p>
+  <p class="fix"><b>Fix:</b> read the eight parquet files directly with pandas, per partition.</p>
+</div>
+
+<div class="fm clean">
+  <div class="tag">F2 · opportunity</div>
+  <h4>The pool is 2,000 concepts, not 500</h4>
+  <p>The four partitions are near-disjoint — pairwise label overlap of 0–1 concepts, 1,995 distinct labels across 2,000 rows.</p>
+  <p class="fix"><b>Action:</b> pool all four, giving 108 positives + 36 negatives per concept.</p>
+</div>
+
+<div class="fm">
+  <div class="tag">F3 · would have faked the result</div>
+  <h4>Concept-independent style signature in every positive</h4>
+  <p>AxBench positives are LLM-generated to express a concept; negatives are ordinary responses. A classifier trained on some concepts and tested on <strong>held-out</strong> ones still separates them at <strong>0.969 ± 0.005 AUC</strong> — on style alone. <span class="mono">"akin"</span>: 17.2% of positives vs <b>0.0%</b> of negatives. <span class="mono">"just"</span>: 15.8% vs 0.6%.</p>
+  <p>A naive <span class="mono">mean_pos − mean_neg</span> vector would encode this register, not the concept — and because style is a <em>real, consistent</em> direction, it would <strong>pass a norm-matched random-direction control</strong>. That is a false positive for the paper's faithfulness, manufactured by an artifact of the steering data.</p>
+  <p class="fix"><b>Fix:</b> cross-concept mean-centring, plus a dedicated style-direction control arm in every experiment.</p>
+</div>
+
+<div class="fm">
+  <div class="tag">F4 · unfixable, scoped</div>
+  <h4>Instruction pools are disjoint and concept-matched</h4>
+  <p>Instructions <em>alone</em> separate positives from negatives at <strong>0.929 AUC</strong>, and the two instruction pools overlap <strong>0%</strong> within a concept. Worse, instructions are concept-matched — a concept's instructions predict its own label at 35.8% top-50 versus ~0.2% chance — so mean-centring cannot remove this.</p>
+  <p class="fix"><b>Judgement:</b> less dangerous than F3, since instruction topic points in the <em>same</em> semantic direction as the label. Recorded as a scope limit: <span class="mono">v_c</span> blends "concept in the response" with "topic of its associated prompts."</p>
+</div>
+
+<div class="fm">
+  <div class="tag">F5 · a fix that does not work</div>
+  <h4>Length imbalance, and why truncation doesn't help</h4>
+  <p>Positives run 46% longer (501 vs 344 chars; length alone gives 0.704 AUC). Truncating everything to the negative median leaves style separability essentially unchanged — <strong>0.966 vs 0.969</strong>.</p>
+  <p class="fix"><b>Action:</b> length-matching was <b>dropped from the plan</b>. It buys nothing here; centring has to do the work.</p>
+</div>
+
+<div class="fm clean">
+  <div class="tag">F6 · clean</div>
+  <h4>Genre is balanced</h4>
+  <p>Text / code / math proportions are <em>identical</em> between positives and negatives (0.6767 / 0.2500 / 0.0733 each). No genre confound.</p>
+</div>
+
+<div class="fm">
+  <div class="tag">F7 · the proxy lied</div>
+  <h4>In activation space the confound is 4× worse than any text check suggests</h4>
+  <p>Every check above is TF-IDF. Measured on real Llama layer-19 activations, the shared component is nearly the entire vector:</p>
+  <div class="stats" style="margin:14px 0 0">
+    <div class="stat"><div class="k">TF-IDF proxy</div><div class="v">0.233</div><div class="sub">shared / typical norm</div></div>
+    <div class="stat"><div class="k">Llama L19 actual</div><div class="v" style="color:var(--amber)">0.960</div><div class="sub">shared / typical norm</div></div>
+    <div class="stat"><div class="k">raw pairwise cos</div><div class="v" style="color:var(--amber)">0.919</div><div class="sub">all 60 vectors near-identical</div></div>
+    <div class="stat"><div class="k">after centring</div><div class="v sig">−0.013</div><div class="sub">vs floor −1/(n−1) = −0.017</div></div>
+  </div>
+  <p class="fix" style="margin-top:16px"><b>Lesson:</b> dense activations carry register far more strongly than sparse text statistics do. Verify confounds in the space you actually intervene in.</p>
+</div>
+
+<h3>Corrections applied</h3>
+<ul>
+  <li><strong>Cross-concept mean-centring</strong> — <span class="mono">v_c ← v_c − mean(v)</span>, the same operation the paper applies to topic vectors. Result: mean pairwise cosine <b>−0.0132</b> against the mechanical floor of <b>−0.0169</b>, i.e. as orthogonal as centring permits.</li>
+  <li><strong>Positives-only construction</strong> rather than <span class="mono">pos − neg</span>. Statistically equivalent after centring, but never differences two disjoint instruction pools (F4), and mirrors the paper's own topic-vector construction.</li>
+  <li><strong>Split-half stability</strong> — vectors rebuilt from alternating halves. Median cosine <b>0.939</b>, min 0.826, 100% above 0.5.</li>
+</ul>
+
+<h3>The filtering funnel</h3>
+<div class="funnel">
+  <div class="frow"><div class="lbl">all AxBench concepts</div><div class="bar" style="width:100%"></div><div class="n">2,000</div></div>
+  <div class="frow"><div class="lbl">genre = text</div><div class="bar" style="width:67%"></div><div class="n">1,341</div></div>
+  <div class="frow"><div class="lbl">separability AUC ≥ 0.90</div><div class="bar" style="width:65%"></div><div class="n">~1,300</div></div>
+  <div class="frow"><div class="lbl">CPU shortlist</div><div class="bar" style="width:3%"></div><div class="n">60</div></div>
+  <div class="frow"><div class="lbl">fluency preserved</div><div class="bar dim" style="width:0.55%"></div><div class="n">11</div></div>
+  <div class="frow"><div class="lbl">actually swept</div><div class="bar" style="width:0.5%"></div><div class="n">10</div></div>
+</div>
+<p class="note">180 concepts were flagged as surface-form (punctuation, capitalisation, <span class="mono">instances of the word "X"</span>) and dropped — a null result on those would confound "insensitive to <span class="mono">h</span>" with "has no vocabulary for this". The <strong>fluency</strong> filter bound hardest: 11 survivors of 60.</p>
+
+<h2 id="repro"><span class="sn">SECTION 04</span>What was reproduced</h2>
+
+<p><strong>Scope, chosen deliberately:</strong> only the Wikipedia contrastive-vector retrieval result. <em>Not</em> reproduced — SAE detection/generation scoring, bridge-entity extraction, the taboo baseline, Qwen scaling curves, the architecture sweep, the LoRA comparison. None bear on the critique being tested.</p>
+
+<p>1,000 topics from the val split, retrieval index over <strong>all 49,637</strong>, GTE-large, best-of-6 (a topic counts as hit@k if any of its 6 generations lands it in the top k).</p>
+
+<div class="tablewrap"><table>
+<caption>Three arms · identical topics and seeds</caption>
+<thead><tr><th>Arm</th><th class="num">R@1</th><th class="num">R@5</th><th class="num">R@10</th><th class="num">R@20</th><th class="num">R@50</th><th class="num">R@100</th></tr></thead>
+<tbody>
+<tr class="hi"><td>trained</td><td class="num">79.3%</td><td class="num">86.6%</td><td class="num">89.2%</td><td class="num">91.7%</td><td class="num">94.5%</td><td class="num">95.9%</td></tr>
+<tr><td>untrained <span class="mono">h/‖h‖</span></td><td class="num flat">0.0%</td><td class="num flat">0.1%</td><td class="num flat">0.4%</td><td class="num flat">1.1%</td><td class="num flat">1.5%</td><td class="num flat">2.0%</td></tr>
+<tr><td>bias-only <span class="mono">f(0)=b</span></td><td class="num flat">0.0%</td><td class="num flat">0.0%</td><td class="num flat">0.1%</td><td class="num flat">0.4%</td><td class="num flat">0.7%</td><td class="num flat">1.0%</td></tr>
+</tbody></table></div>
+
+<div class="tablewrap"><table>
+<caption>Comparison to the paper</caption>
+<thead><tr><th>Quantity</th><th class="num">Paper</th><th class="num">Here</th><th class="num">Δ</th></tr></thead>
+<tbody>
+<tr><td>trained R@1, no scale tuning</td><td class="num">82.9%</td><td class="num">79.3%</td><td class="num">−3.6 pt</td></tr>
+<tr><td>trained R@100</td><td class="num">98.4%</td><td class="num">95.9%</td><td class="num">−2.5 pt</td></tr>
+<tr><td>untrained R@1</td><td class="num">0.04%</td><td class="num">0.0%</td><td class="num">≈0</td></tr>
+</tbody></table></div>
+
+<p><strong>Verdict: reproduces.</strong> Both trained figures land a few points under. Plausible causes, none chased: a 1,000-topic subsample versus their full validation set, sampling variance at temperature 0.5, and possible differences in how the index document is assembled. The qualitative claim — ~80% versus ~0% — reproduces fully.</p>
+
+<h2 id="ext"><span class="sn">SECTION 05</span>The extension, experiment by experiment</h2>
+
+<p>None of the following appear in the paper. Each was added to test whether descriptions <em>respond</em> to a controlled change, rather than merely correlating with an activation.</p>
+
+<h3>5.1 · Adapter geometry in closed form (no GPU)</h3>
+<p><strong>Why:</strong> the paper reports the bias accounts for ~85% of the improvement but never characterises the geometry that implies. <strong>How:</strong> <code>normalize_input=true</code> means the instance term has <em>fixed norm</em>, so every soft token lies on a sphere of radius α centred at <span class="mono">b</span> — computable from the 19 kB checkpoint alone.</p>
+
+<div class="tablewrap"><table>
+<thead><tr><th>Adapter</th><th class="num">α</th><th class="num">‖b‖</th><th class="num">instance</th><th class="num">max angle</th><th class="num">E[cos] theory</th><th class="num">empirical</th></tr></thead>
+<tbody>
+<tr class="hi"><td>wikipedia-scalar-affine</td><td class="num">7.175</td><td class="num">20.869</td><td class="num">10.6%</td><td class="num">40.2°</td><td class="num">0.89429</td><td class="num">0.89426</td></tr>
+<tr><td>goodfire-sae</td><td class="num">4.032</td><td class="num">19.750</td><td class="num">4.0%</td><td class="num">23.6°</td><td class="num">0.95998</td><td class="num">0.96000</td></tr>
+<tr><td>llamascope-sae</td><td class="num">4.021</td><td class="num">19.008</td><td class="num">4.3%</td><td class="num">24.4°</td><td class="num">0.95718</td><td class="num">0.95717</td></tr>
+</tbody></table></div>
+
+<p><strong>Meaning:</strong> every one of ~50,000 interpretations launches from inside a single <strong>40° cone</strong>. But this bounds the instance <em>budget</em>, not its <em>usage</em> — §4 shows the model resolves 1-in-49,637 inside that cone. Geometry alone cannot settle the question, which is why the sweep is needed. It also makes a falsifiable prediction: a model this sensitive to small angular displacement <em>should</em> register a steering vector, so a flat curve would be the surprise.</p>
+
+<h3>5.2 · Bias-only retrieval</h3>
+<p><strong>Why:</strong> the paper notes a zero vector yields generic descriptions but never scores them. <strong>Result:</strong> <strong>0.0% R@1</strong>, while producing fluent, confident, specific text — <em>"the director of the 1967 film Blow-Up"</em>, <em>"the journalist who coined the term 'tropism'"</em>.</p>
+<p><strong>Meaning:</strong> the sharpest qualification of the paper's own framing. "The bias accounts for ~85% of the improvement" is fully compatible with the bias carrying <strong>zero instance information</strong>. It supplies format, register and confident fluency; the instance term does all the identifying. It also shows the prior is an active confabulator rather than a neutral scaffold — directly relevant to the deceptive-alignment motivation.</p>
+
+<h3>5.3 · Behavioural validation, doubling as concept screening</h3>
+<p><strong>Why:</strong> without independent evidence the intervention changes <em>behaviour</em>, the sweep is pure semantic correlation. <strong>How:</strong> a forward hook adds <span class="mono">λ·‖resid‖·v̂</span> at layer 19 across all positions during generation (CAA-style), 20 neutral prompts, same λ grid as the sweep, λ in units of typical residual norm so both curves share an x-axis.</p>
+
+<div class="tablewrap"><table>
+<caption>Mean over the 60 shortlisted concepts</caption>
+<thead><tr><th class="num">λ</th><th class="num">B(λ) rank</th><th class="num">distinct-2</th><th class="num">NLL/token</th></tr></thead>
+<tbody>
+<tr><td class="num">−2.0</td><td class="num">0.362</td><td class="num flat">0.657</td><td class="num flat">2.94</td></tr>
+<tr><td class="num">−1.0</td><td class="num">0.390</td><td class="num">0.963</td><td class="num">2.00</td></tr>
+<tr class="hi"><td class="num">0.0</td><td class="num">0.502</td><td class="num">0.984</td><td class="num">1.28</td></tr>
+<tr><td class="num">+0.6</td><td class="num">0.754</td><td class="num">0.977</td><td class="num">1.80</td></tr>
+<tr><td class="num">+1.0</td><td class="num">0.951</td><td class="num">0.889</td><td class="num">2.59</td></tr>
+<tr><td class="num">+2.0</td><td class="num">0.957</td><td class="num flat">0.522</td><td class="num flat">2.99</td></tr>
+</tbody></table></div>
+
+<p>Steering works, strongly and monotonically — <strong>but fluency degrades with |λ|</strong>. Only <strong>11 of 60</strong> concepts held fluency across the grid. <strong>Meaning:</strong> the intervention is behaviourally real, and the informative band is |λ| ≲ 1; effects at λ=2 are partly the model breaking down.</p>
+
+<h3>5.4 · The λ-sweep, four arms</h3>
+<p>10 screened concepts × 30 held-out topics × 11 λ × 6 generations. Injection scale <strong>held fixed across λ</strong> so the paper's best-of-n scale search cannot be mistaken for the λ effect. Scored as <strong>rank against a fixed 40-distractor pool</strong>, not raw cosine — cosine drifts upward whenever text merely gets longer or more generic, which would read as a false positive.</p>
+
+<div class="tablewrap"><table>
+<caption>S(λ) · rank vs 40 distractors · 0.5 = chance</caption>
+<thead><tr><th class="num">λ</th><th class="num">concept</th><th class="num">random</th><th class="num">style</th><th class="num">pure_v</th></tr></thead>
+<tbody>
+<tr><td class="num">−2.0</td><td class="num"><b>0.3510</b></td><td class="num flat">0.5087</td><td class="num flat">0.5000</td><td class="num">0.3131</td></tr>
+<tr><td class="num">−1.0</td><td class="num"><b>0.4149</b></td><td class="num flat">0.5072</td><td class="num flat">0.5000</td><td class="num">0.3131</td></tr>
+<tr><td class="num">−0.3</td><td class="num">0.4792</td><td class="num flat">0.4984</td><td class="num flat">0.5000</td><td class="num">0.3142</td></tr>
+<tr class="hi"><td class="num">0.0</td><td class="num">0.5000</td><td class="num">0.5000</td><td class="num">0.5000</td><td class="num">0.5000</td></tr>
+<tr><td class="num">+0.3</td><td class="num"><b>0.5584</b></td><td class="num flat">0.5037</td><td class="num flat">0.5000</td><td class="num">0.7957</td></tr>
+<tr><td class="num">+1.0</td><td class="num"><b>0.7227</b></td><td class="num flat">0.5041</td><td class="num flat">0.5000</td><td class="num">0.7960</td></tr>
+<tr><td class="num">+2.0</td><td class="num"><b>0.7788</b></td><td class="num flat">0.5018</td><td class="num flat">0.5001</td><td class="num">0.7960</td></tr>
+</tbody></table></div>
+
+<p>Each arm isolates something different. <strong>random</strong> — direction-specificity versus a generic response to perturbation; the control that could have killed the result. <strong>style</strong> — response to <em>any real consistent</em> direction the model represents, which a random direction cannot test, and which exists only because F3 was found. <strong>pure_v</strong> (<span class="mono">λ‖h‖v̂</span> with no <span class="mono">h</span>) — degeneracy: wherever concept ≈ pure_v, <span class="mono">h</span> no longer matters.</p>
+
+<p><strong>Meaning:</strong> S(+λ) &gt; S(0) &gt; S(−λ), monotone and bidirectional. Both controls flat. <span class="mono">pure_v</span> saturates at λ=0.3 while concept climbs gradually — at λ=0.3 concept 0.558 ≪ pure_v 0.796, so <span class="mono">h</span> still dominates; by λ=2 they converge and <span class="mono">h</span> is washed out. <strong>The informative regime is λ ≲ 1.</strong> Because the adapter L2-normalises, adding <span class="mono">λv</span> can only rotate direction, never change magnitude — no norm confound can explain any of it.</p>
+
+<h3>5.5 · Sensitivity comparison</h3>
+<div class="stats">
+  <div class="stat"><div class="k">SelfIE λ₅₀</div><div class="v sig">0.596</div></div>
+  <div class="stat"><div class="k">behavioural λ₅₀</div><div class="v sig">0.576</div></div>
+  <div class="stat"><div class="k">pure_v λ₅₀</div><div class="v">0.150</div><div class="sub">saturates instantly</div></div>
+  <div class="stat"><div class="k">style λ₅₀</div><div class="v">1.75</div><div class="sub">flat / noisy</div></div>
+</div>
+<p>A 3% difference, and both sit inside the band where fluency holds (distinct-2 ≈ 0.98 at λ=0.6). This is the closest the experiment gets to <span class="mono">intervention → internal change → report</span>.</p>
+
+<h3>5.6 · Variance decomposition</h3>
+<p>Description embeddings are unit-norm, so the second moment splits exactly as <span class="mono">1 = ‖ē‖² + Var</span>; the variance term is then partitioned factorially. Validated beforehand against synthetic data with closed-form ground truth, including a null case that must not fire (predicted prior share 0.9493 vs measured 0.9553; null-case λ share 0.005).</p>
+
+<div class="tablewrap"><table>
+<caption>Concept arm · 19,800 generations</caption>
+<tbody>
+<tr><td>prior / constant</td><td class="num"><b>71.8%</b> of second moment</td></tr>
+<tr><td>responsive (variance)</td><td class="num">28.2%</td></tr>
+<tr><td style="padding-left:22px">↳ topic identity</td><td class="num">31.4% of variance</td></tr>
+<tr><td style="padding-left:22px">↳ concept identity</td><td class="num">1.2%</td></tr>
+<tr><td style="padding-left:22px">↳ λ along v</td><td class="num"><b>0.75%</b></td></tr>
+<tr><td style="padding-left:22px">↳ residual (sampling noise)</td><td class="num flat">66.6%</td></tr>
+</tbody></table></div>
+
+<p><strong>Meaning:</strong> the λ effect is real, monotone, direction-specific and behaviourally calibrated — and <strong>small</strong>. Descriptions stay dominated by which topic <span class="mono">h</span> came from and by sampling noise. Anyone who cares about effect size rather than existence should weight this over §5.4.</p>
+
+<h2 id="impl"><span class="sn">SECTION 06</span>Implementation</h2>
+
+<p>~2,000 lines across 12 modules. Nothing upstream is vendored — it was cloned for reference, and the pieces needed (adapter format, injection template, extraction convention) reimplemented so the pipeline runs without its GPU-heavy dependency set (<code>sae-lens</code>, <code>nnsight</code>, <code>vllm</code>).</p>
+
+<div class="tablewrap"><table>
+<thead><tr><th>File</th><th class="num">Lines</th><th>Role</th></tr></thead>
+<tbody>
+<tr><td><code>core.py</code></td><td class="num">282</td><td>model loading, extraction (last/mean/response-span), soft-token injection, steering hooks</td></tr>
+<tr><td><code>analysis.py</code></td><td class="num">314</td><td>S/T curves, group bootstrap, variance decomposition, <code>--selftest</code></td></tr>
+<tr><td><code>vectors.py</code></td><td class="num">179</td><td>concept vectors, centring, activation-space diagnostics</td></tr>
+<tr><td><code>behavioral.py</code></td><td class="num">176</td><td>steering sweep, B(λ), fluency, screening</td></tr>
+<tr><td><code>selfie_sweep.py</code></td><td class="num">174</td><td>the λ sweep and its four arms</td></tr>
+<tr><td><code>repro.py</code></td><td class="num">146</td><td>recall@k reproduction</td></tr>
+<tr><td><code>geometry.py</code></td><td class="num">143</td><td>Phase 0 — numpy only, no torch</td></tr>
+<tr><td><code>scoring.py</code></td><td class="num">137</td><td>GTE embeddings, rank-vs-distractors, fluency</td></tr>
+<tr><td><code>select_concepts.py</code></td><td class="num">129</td><td>CPU concept pre-screen</td></tr>
+<tr><td><code>smoke_test.py</code></td><td class="num">102</td><td>CPU plumbing test</td></tr>
+<tr><td><code>concepts.py</code></td><td class="num">100</td><td>AxBench catalog build</td></tr>
+<tr><td><code>adapter.py</code></td><td class="num">71</td><td>scalar-affine load / random-init</td></tr>
+</tbody></table></div>
+
+<h3>Choices worth naming</h3>
+<ul>
+  <li><strong><code>Adapter</code> reads the released safetensors directly</strong> — tensors <code>bias</code> (4096,) and <code>log_scale</code> (1,) — rather than importing <code>selfie_adapters</code>. Drops a dependency, and lets <code>random_like()</code> fabricate an untrained adapter at the measured geometry for smoke runs on a model with different <span class="mono">d</span>.</li>
+  <li><strong>Model-agnostic SelfIE template.</strong> Upstream hard-codes Llama's <code>&lt;|reserved_special_token_0|&gt;</code>; ours derives an equivalent prompt from any tokenizer's chat template. This is what makes the CPU smoke path possible at all.</li>
+  <li><strong>Batched <code>selfie_describe</code>.</strong> The first version issued one <code>generate()</code> per vector; flattening (B, n) into one batched call is why 79,206 generations finish in under two hours.</li>
+  <li><strong>Steering as a context-managed forward hook</strong>, handling both tuple and tensor block outputs, handle removed in a <code>finally</code>. The smoke test explicitly asserts the hook is removed cleanly and that <span class="mono">coeff=0</span> is a true no-op — both silent-corruption failure modes.</li>
+</ul>
+
+<h3>Two local environments</h3>
+<p>The 2019 Intel Mac has no CUDA and no MPS, and PyTorch ships no macOS x86_64 wheel past 2.2.x (cp311 max). So: <strong><code>.venv</code></strong> (Python 3.13, no torch) ran all of Phase 0 and the entire dataset audit — <code>safetensors.numpy.load_file</code> reads checkpoints without torch at all. <strong><code>.venv311</code></strong> (<code>brew install python@3.11</code>, <code>torch==2.2.2</code>, <code>numpy&lt;2</code> since the 2.2.2 binary is built against numpy 1.x) ran CPU smoke tests.</p>
+
+<p>Every GPU script takes <code>--smoke</code>, swapping in <strong>Qwen2.5-0.5B-Instruct</strong> with a random adapter on CPU. Outputs are nonsense; the point is validating shapes, hook placement and templates before spending GPU time. The full chain ran end-to-end this way locally first.</p>
+
+<h2 id="runpod"><span class="sn">SECTION 07</span>How it ran on RunPod</h2>
+
+<p>Provisioned through the RunPod MCP server rather than the console. Selection was driven by a constraint that only appears if you check: <strong>no 48GB GPU has a network volume in its region.</strong> A40 exists only in CA-MTL-1 and EU-SE-1, neither volume-capable; A6000 likewise; L40S has one volume-capable region at 2–3× the price and LOW stock. The only HIGH-stock GPU in a volume-capable region is the 24GB RTX 4090.</p>
+
+<p>Chosen: <strong>A40 48GB, CA-MTL-1, Secure Cloud, $0.44/hr, no network volume</strong> — VRAM headroom over persistence, since re-setup is ~15 minutes and scriptable while a 24GB ceiling is permanent.</p>
+
+<pre><code>create-pod  name=selfie-adapter-probes  gpuTypeIds=["NVIDIA A40"]
+            dataCenterIds=["CA-MTL-1"]  cloudType=SECURE
+            containerDiskInGb=20  volumeInGb=100  volumeMountPath=/workspace
+            ports=["22/tcp","8888/http"]  sshPublicKey=&lt;ed25519 public key&gt;
+            env={HF_HOME:/workspace/hf_cache}</code></pre>
+
+<p>The HF token was supplied as a RunPod <strong>Secret</strong>, referenced as <code>HF_TOKEN={{ RUNPOD_SECRET_hf_token }}</code>, so it never entered the session transcript; the account-scoped OAuth token on the laptop was deliberately not copied to rented hardware. Code moved by <code>rsync</code> over SSH, excluding venvs, <code>.git</code>, and the 73MB pair table that regenerates from HuggingFace in a minute.</p>
+
+<p>Everything ran through one detached orchestration script:</p>
+
+<pre><code>setsid nohup env N_EVAL=1000 N_CONCEPTS=60 SWEEP_CONCEPTS=10 SWEEP_TOPICS=30 \
+  bash run_all.sh > /workspace/pipeline.log 2>&1 &lt; /dev/null &amp;</code></pre>
+
+<p>It appends a marker to <code>/workspace/PIPELINE_STEPS</code> after each phase (<code>REPRO_OK</code>, …, <code>PIPELINE_COMPLETE</code>, or <code>FAILED:&lt;phase&gt;</code>), so progress is a one-line SSH poll rather than a held-open connection. 07:52 → 09:37 UTC, ≈<strong>$0.80</strong> for all 79,206 generations.</p>
+
+<h3>Six things that cost real time</h3>
+<ul>
+  <li><strong><code>update-pod</code> replaces the env wholesale — it does not merge.</strong> Setting <code>HF_TOKEN</code> while omitting <code>PUBLIC_KEY</code> deleted the variable the image uses to install the SSH key and start sshd. Instant lockout, two restarts to recover.</li>
+  <li><strong>Pod env vars are absent from SSH sessions.</strong> They live on PID 1. <code>echo $HF_TOKEN</code> returned empty and looked exactly like an unresolved secret — it had resolved correctly all along. Read them from <code>/proc/1/environ</code>.</li>
+  <li><strong>The public SSH port changes on every restart</strong> (22104 → 22019 → 22015 → 22179).</li>
+  <li><strong>Container disk resets on restart; only <code>/workspace</code> persists.</strong></li>
+  <li><strong><code>/workspace</code> is MooseFS network storage</strong> — 453 MB/s sequential, fine for a 16GB model, but very slow on many-small-file work. <code>pip install</code> there took ~20 minutes and twice appeared to hang. PEP 668 also blocks system-wide pip on this image, so a venv is mandatory.</li>
+  <li><strong><code>rsync -a</code> fails on <code>/workspace</code></strong> with <code>chown: Operation not permitted</code>. Use <code>scp</code> or <code>rsync -rlptz --no-owner --no-group</code>.</li>
+</ul>
+
+<p class="note">For any long pod job: <code>setsid nohup … &amp;</code> plus a completion-marker file. Plain <code>nohup</code> over SSH dies when the session drops — that is how the first two installs were lost.</p>
+
+<h2 id="limits"><span class="sn">SECTION 08</span>Limitations</h2>
+<ul>
+  <li><strong>Not causal.</strong> Steering vectors are not clean semantic representations. This tests sensitivity to a controlled, independently validated change — nothing more.</li>
+  <li><strong>Selection effect, twice over.</strong> Concepts were filtered for lexical separability <em>and</em> chosen because they steer well and preserve fluency. Results describe the favourable case.</li>
+  <li><strong>Weak concepts in the swept set.</strong> Only <strong>5 of the 10</strong> swept concepts had behavioural rise &gt; 0.3 (median 0.377), and the two weakest (0.240, 0.219) are not far above the style control's 0.153. The fluency filter bound harder than the steering-strength filter, so the final set trades effect size for coherence. All 10 did have high monotonicity (0.86–0.98).</li>
+  <li><strong>Behavioural control arms are not absolutely comparable.</strong> <span class="mono">__STYLE__</span> and <span class="mono">__RANDOM__</span> were scored against a placeholder label, so their absolute rank values mean nothing; only their <em>rise</em> (0.153 and −0.049 versus up to 0.945) is interpretable.</li>
+  <li><strong>Topic displacement is partly generic</strong> — T(λ) also declines for random and style.</li>
+  <li><strong>Instruction confound persists</strong> (F4) and cannot be removed by centring.</li>
+  <li><strong>Narrow.</strong> One model, one layer, one adapter architecture, 10 concepts, 30 topics. Reproduction is partial by design.</li>
+</ul>
+
+<h3>What would strengthen this next</h3>
+<p>In rough order of value: an instruction-only control arm to bound F4 empirically; the same sweep on <code>wikipedia-full-rank</code> and the SAE adapters, whose instance share is less than half; more concepts, to turn the 0.75% variance figure into something with an interval; and the genuinely stronger test — intervening on features or circuits whose causal role is independently established, and asking whether the self-report tracks <em>that</em>.</p>
+
+<footer>
+  Reproduction of arXiv 2602.10352 (AE Studio / AI Alignment Foundation) plus a steering-sensitivity extension.<br>
+  Upstream code and checkpoints: agencyenterprise/selfie-adapters (MIT) · Steering data: AxBench CONCEPT500 (CC-BY-4.0) · Topics: keenanpepper/fifty-thousand-things
+</footer>
+
+</main>
+</div>
+</div>
