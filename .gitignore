@@ -2,6 +2,7 @@
 .venv311/
 __pycache__/
 *.pyc
-data/
-adapters/*.safetensors
 results/smoke_*
+
+# regenerable from HF via selfie_steering/concepts.py (73MB)
+data/axbench/concept_pairs.parquet
