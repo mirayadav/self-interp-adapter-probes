@@ -14,7 +14,7 @@ things that went wrong and what was done about them.
 | Adapter | `keenanpepper/selfie-adapters-llama-3.1-8b-instruct` → `wikipedia-scalar-affine.safetensors` |
 | Adapter form | `f(h) = α·(h/‖h‖) + b`, α = **7.175**, ‖b‖ = **20.869**, `normalize_input=true`, d+1 = 4097 params |
 | Mean vector | `mean-vectors.safetensors` → `layer_19` (mean activation over the 50k-topic dataset) |
-| Embedder | `thenlper/gte-large` (the paper's choice) |
+| Embedder | `thenlper/gte-large` (the paper's choice) — **the same model for every score in every experiment**: retrieval, behavioural screen, and λ-sweep |
 | Hardware | 1 × NVIDIA A40 48GB, RunPod Secure Cloud, CA-MTL-1 |
 | Stack | torch 2.8.0+cu128, transformers **5.15.0**, sentence-transformers 5.7.0 |
 | Runtime | ~1h45m end to end; **79,206 generations** total |
@@ -352,6 +352,16 @@ per-token NLL under the *unsteered* model as fluency guards.
 | +0.6 | 0.754 | 0.977 | 1.80 |
 | +1.0 | 0.951 | 0.889 | 2.59 |
 | +2.0 | 0.957 | 0.522 | 2.99 |
+
+The **keyword rate** — pure substring matching, no embeddings — traces the same
+curve (0.039 / 0.350 / 0.598 / **0.874** / 0.769 at λ = −2 / 0 / +0.6 / +1 / +2),
+so the behavioural effect is not an artifact of GTE-large. This matters because
+the same embedder scores both the screen that *selects* concepts and the sweep
+that *measures* the effect.
+
+**Only `distinct2` gated anything.** `fluency_ok` requires distinct2 > 0.6× its
+λ=0 value at every λ; `nll_per_token` and `keyword` were recorded for
+interpretation but never used to filter. The 60 → 11 cut was distinct2 alone.
 
 Steering works, strongly and monotonically. **But fluency degrades with |λ|**:
 distinct-2 falls from 0.984 to 0.522 and NLL more than doubles by λ=2. Only **11 of

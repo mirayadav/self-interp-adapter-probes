@@ -551,7 +551,27 @@ footer{
   <p><strong>Steering works</strong> — the concept reliably shows up in the model's answers. <strong>But push too hard and the model falls apart.</strong> Only the range up to about λ=1 is meaningful; beyond that we're measuring damage. The cutoff we used — coherence must stay above 60% of its unsteered value at every strength — is what cut 60 concepts down to 11.</p>
 </div>
 
-<p class="note">Neither measure is perfect. The concept score depends on the embedding model and on which 40 alternatives were drawn. And the coherence score only catches <em>repetition</em> — it would happily pass fluent nonsense, which is why we also tracked how surprising the text looked to the unsteered model (it roughly doubled by λ=2, agreeing with the repetition measure).</p>
+<h4>Two more measures we tracked</h4>
+
+<p>The coherence score only catches <em>repetition</em> — fluent nonsense would sail through it. So we also fed every steered output back through the <strong>unsteered</strong> model and measured how improbable it found its own text. And because the concept score leans on one embedding model, we added a crude check with no embeddings at all: does the output literally contain the concept's characteristic words?</p>
+
+<div class="tablewrap"><table>
+<caption>All four measures, averaged over the 60 screened concepts</caption>
+<thead><tr><th class="num">λ</th><th class="num">concept present</th><th class="num">keyword match</th><th class="num">coherence</th><th class="num">surprise</th></tr></thead>
+<tbody>
+<tr><td class="num">−2.0</td><td class="num">0.362</td><td class="num">0.039</td><td class="num flat">0.657</td><td class="num flat">2.94</td></tr>
+<tr><td class="num">−1.0</td><td class="num">0.390</td><td class="num">0.182</td><td class="num">0.963</td><td class="num">2.00</td></tr>
+<tr class="hi"><td class="num">0</td><td class="num">0.502</td><td class="num">0.350</td><td class="num">0.984</td><td class="num">1.28</td></tr>
+<tr><td class="num">+0.6</td><td class="num">0.754</td><td class="num">0.598</td><td class="num">0.977</td><td class="num">1.80</td></tr>
+<tr><td class="num">+1.0</td><td class="num">0.951</td><td class="num"><b>0.874</b></td><td class="num">0.889</td><td class="num">2.59</td></tr>
+<tr><td class="num">+2.0</td><td class="num">0.957</td><td class="num">0.769</td><td class="num flat">0.522</td><td class="num flat">2.99</td></tr>
+</tbody></table></div>
+
+<p><strong>Surprise</strong> roughly doubles by λ=2, agreeing with the coherence measure — so the collapse is real and not an artifact of how repetition is counted.</p>
+
+<p><strong>Keyword match matters more than it looks.</strong> It uses plain string matching, no embeddings whatsoever, and it traces the same curve: flat-to-rising through the usable range, peaking at λ=1, then falling back as the output degenerates. So the behavioural effect is not an artifact of the particular embedding model we scored with — which is worth knowing, because the same model is used both to pick these concepts and to measure the effect later.</p>
+
+<p class="note"><strong>One honest note on the filter.</strong> Although we tracked all four, only <em>coherence</em> was actually used to include or exclude a concept. Surprise and keyword match were recorded for interpretation but never gated anything, so the 60 → 11 cut was coherence alone.</p>
 
 <h3>5 · The main experiment: nudge the activation, read the description</h3>
 
@@ -661,6 +681,8 @@ footer{
   <div class="pn">Part 4 — How it actually ran</div>
   <h2>Practical details</h2>
 </div>
+
+<p>One embedding model, <code>thenlper/gte-large</code>, was used for every score in every experiment — topic retrieval in Part 1, the behavioural screen, and the λ-sweep. It's the paper's own choice, which keeps the reproduction comparable. Using one model throughout does mean the concept scores in experiments 4 and 5 share a dependency, which is why the keyword check above exists.</p>
 
 <p>About 2,000 lines of Python across 12 modules. We didn't reuse the authors' code directly — it pulls in heavy GPU dependencies we didn't need — but we matched their conventions exactly so the numbers stay comparable.</p>
 

@@ -21,8 +21,15 @@ Outputs one row per (concept, lambda) with:
   rank_pct   primary concept-ness (see scoring.py: robust to generic drift)
   cosine     raw similarity, reported for comparison only
   keyword    non-embedding second opinion
-  distinct2 / nll_per_token   fluency guards -- the analysis range is the lambda
-                              band where these stay near their lambda=0 values
+  distinct2                   the fluency GATE: `fluency_ok` requires distinct2 to
+                              stay above 0.6x its lambda=0 value at every lambda.
+                              This is the only filter applied.
+  nll_per_token               recorded but NOT used as a filter. Mean NLL of the
+                              output under the UNSTEERED model; catches fluent-but-
+                              off-distribution text that distinct2 would pass.
+  keyword                     non-embedding second opinion (substring match on the
+                              concept's top discriminative tokens), so the result
+                              does not rest on one embedding space.
 """
 from __future__ import annotations
 

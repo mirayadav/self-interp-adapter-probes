@@ -18,9 +18,11 @@ Two scoring modes, and the distinction matters for the result.
 
 Fluency guards the interpretation: the paper documents self-interpretation
 staying fluent while becoming ungrounded, and steering at high coefficients
-degenerates into repetition. `distinct2` is a cheap repetition detector;
-`nll_per_token` under the UNSTEERED model is the principled measure. Analysis
-must be restricted to the lambda range where both stay healthy.
+degenerates into repetition. `distinct2` is a cheap repetition detector and is
+the only one used as a GATE in behavioral.py. `nll_per_token` under the
+UNSTEERED model is the more principled measure -- it also catches fluent but
+off-distribution text -- but it is recorded for interpretation only, not used to
+filter. Both agree in practice (each roughly doubles/halves by |lambda|=2).
 """
 from __future__ import annotations
 
