@@ -454,8 +454,32 @@ footer{
   <p>That 96% is a ratio of <em>lengths</em>, so it doesn't mean only 4% was left. What remains after subtracting the shared part sits at roughly a right angle to it, so the leftovers work out to <strong>28% by length, about 8% by energy</strong>. The concept signal was real, but submerged under a nine-times-larger component that every concept shared.</p>
 </div>
 
+<h4>Wait — isn't a strong average what we want?</h4>
+
+<p>Worth pausing on, because there are two different averages here and only one of them should be large.</p>
+
+<p><strong>Averaging <em>within</em> a concept is the good one.</strong> Take the 108 answers that express "gambling", average their activations, and you get a vector that should strongly represent gambling. Individual quirks cancel; what the examples share survives. That's the whole method, and it works as intended.</p>
+
+<p><strong>Averaging <em>across</em> concepts should give almost nothing.</strong> Gambling, plant viruses and weekends are unrelated, so their sixty vectors ought to point sixty different ways and largely cancel. The 96% figure measures this second average — and it says they didn't cancel at all:</p>
+
+<div class="tablewrap"><table>
+<thead><tr><th>Two unrelated concepts</th><th class="num">raw</th><th class="num">after fix</th></tr></thead>
+<tbody>
+<tr><td>gambling ↔ plant viruses</td><td class="num"><b>0.920</b></td><td class="num">−0.220</td></tr>
+<tr><td>gambling ↔ temperature measurement</td><td class="num"><b>0.931</b></td><td class="num">−0.135</td></tr>
+<tr><td>mental health ↔ temperature measurement</td><td class="num"><b>0.947</b></td><td class="num">−0.003</td></tr>
+</tbody></table></div>
+
+<p>"Online gambling" and "the classification of plant viruses" had 92%-identical vectors. Steering with one would have done nearly what steering with the other does. Averaging within each concept had succeeded at cancelling noise — but what it converged on was mostly something <em>every</em> concept shares.</p>
+
+<p>Only part of that is this dataset's fault. Activations inside a transformer carry a large common component no matter what they encode: earlier, in an unrelated sanity check, activations for <em>William Wallace</em> and <em>photosynthesis</em> came out 99% aligned. AxBench's uniform writing voice sits on top of that.</p>
+
 <h4>The fix</h4>
-<p>Subtract the average of all the concept vectors from each one. Whatever they all share — the voice, the format — cancels out, and what's left is what makes each concept distinctive. This is the same trick the paper itself uses elsewhere. Afterwards the vectors were essentially unrelated to one another (as independent as the maths allows), and rebuilding each one from a different half of its examples gave a <strong>94% match</strong>, so they're stable rather than noise.</p>
+<p>Subtract the average of all the concept vectors from each one. Whatever they all share — the generic activation structure, the voice, the format — cancels, and what's left is what makes each concept distinctive. <strong>This is the same trick the paper itself uses</strong>: its topic vectors are an activation minus the mean over all 50,000 topics.</p>
+
+<p>Two checks that this removed noise rather than signal. First, the leftover similarities became <em>semantically sensible</em> — plant viruses and temperature measurement stay mildly related at +0.317 (both scientific), gambling and weekends at +0.237 (both leisure), while gambling and plant viruses go negative. Before the fix everything sat at 0.92 regardless of meaning. Second, rebuilding each vector from a different half of its examples gave a <strong>94% match</strong>, so what survived is stable.</p>
+
+<p class="note">There's also a consequence specific to this experiment: without the fix, a concept's vector and the shared-voice vector would have been nearly the same thing — so the concept arm and the style control in experiment 5 would have moved together, and the control would have been worthless. The controls only mean anything because the two were separated first.</p>
 
 <p>We also kept the discarded "shared voice" direction as a deliberate control — see experiment 5.</p>
 
