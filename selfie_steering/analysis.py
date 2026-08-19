@@ -215,6 +215,8 @@ def main():
                     help="widen the distractor pool to all screened concepts")
     ap.add_argument("--out", default="results/analysis.json")
     ap.add_argument("--curves-out", default="results/curves.parquet")
+    ap.add_argument("--cells-out", default="results/cells.parquet",
+                    help="per-(arm,concept,lambda) means; unit of replication")
     a = ap.parse_args()
 
     if a.selftest:
@@ -298,6 +300,44 @@ def main():
     cur = pd.DataFrame(curves)
     cur.to_parquet(a.curves_out, index=False)
 
+    # ---- per-concept cell means: the unit of replication for paired tests ----
+    cells = (df[df.arm != "bias_only"]
+             .groupby(["arm", "uid", "lam"])[["S_rank", "S_cos"]]
+             .mean().reset_index())
+    cells.to_parquet(a.cells_out, index=False)
+
+    def paired_boot(delta, n_boot=10000, seed=0):
+        """Bootstrap a per-concept difference. Paired: removes the between-concept
+        variance that dominates the unpaired CIs, which is the right test when the
+        same 10 concepts appear in both conditions."""
+        d = np.asarray([x for x in delta if np.isfinite(x)], float)
+        if len(d) < 2:
+            return dict(n=len(d), mean=np.nan, lo=np.nan, hi=np.nan, p=np.nan)
+        r = np.random.default_rng(seed)
+        bs = r.choice(d, (n_boot, len(d)), replace=True).mean(1)
+        # two-sided bootstrap p for H0: mean = 0
+        p = 2 * min((bs <= 0).mean(), (bs >= 0).mean())
+        return dict(n=int(len(d)), mean=float(d.mean()),
+                    lo=float(np.quantile(bs, .025)), hi=float(np.quantile(bs, .975)),
+                    p=float(min(1.0, max(p, 1.0 / n_boot))))
+
+    piv = cells.pivot_table(index=["arm", "uid"], columns="lam", values="S_rank")
+    lams = sorted(cells.lam.unique())
+    stats = {"within_arm_vs_lambda0": {}, "concept_vs_random": {}}
+    for arm in cells.arm.unique():
+        sub = piv.loc[arm]
+        for lam in lams:
+            if lam == 0:
+                continue
+            stats["within_arm_vs_lambda0"].setdefault(arm, {})[str(lam)] = \
+                paired_boot(sub[lam] - sub[0.0])
+    if {"concept", "random"} <= set(cells.arm.unique()):
+        cc, rr = piv.loc["concept"], piv.loc["random"]
+        common = cc.index.intersection(rr.index)
+        for lam in lams:
+            stats["concept_vs_random"][str(lam)] = \
+                paired_boot(cc.loc[common, lam] - rr.loc[common, lam])
+
     # variance decomposition on the concept arm
     ca = df[df.arm == "concept"]
     dec = decompose(E[ca.index.values], {
@@ -317,6 +357,7 @@ def main():
 
     bias_desc = df[df.arm == "bias_only"].desc.tolist()
     res = {"n_generations": int(len(df)),
+           "paired_stats": stats,
            "variance_decomposition": dec,
            "sensitivity": sens,
            "bias_only_descriptions": bias_desc[:10]}
@@ -331,6 +372,18 @@ def main():
     print("\n=== S(lambda), rank_pct, by arm ===")
     piv = cur[cur.metric == "S_rank"].pivot_table(index="lam", columns="arm", values="mean")
     print(piv.round(4).to_string())
+    print("\n=== PAIRED TESTS (over concepts; the right unit of replication) ===")
+    print("  concept arm, S(lam) - S(0):")
+    for lam, v in stats["within_arm_vs_lambda0"].get("concept", {}).items():
+        star = "*" if v["p"] < .05 else " "
+        print(f"    lam={float(lam):+.1f}  d={v['mean']:+.3f} "
+              f"[{v['lo']:+.3f},{v['hi']:+.3f}]  p={v['p']:.4f} {star}")
+    print("  concept minus random, at each lambda:")
+    for lam, v in stats["concept_vs_random"].items():
+        star = "*" if v["p"] < .05 else " "
+        print(f"    lam={float(lam):+.1f}  d={v['mean']:+.3f} "
+              f"[{v['lo']:+.3f},{v['hi']:+.3f}]  p={v['p']:.4f} {star}")
+
     print("\n=== SENSITIVITY (lambda at half-max) ===")
     for k, v in sens.items():
         print(f"  {k:34s} {v}")

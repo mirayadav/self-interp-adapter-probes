@@ -711,7 +711,19 @@ footer{
 <p>"Real and consistent" isn't the same as "large". How much of what the model says is actually driven by the nudge?</p>
 
 <h4>What we did</h4>
-<p>Took all 19,800 descriptions and split up the variation between them: how much is explained by the constant prior, by which topic it started from, by the nudge, and by plain randomness in generation.</p>
+
+<p>Every description gets turned into a point in a high-dimensional space, where nearby points mean similar text. Across all 19,800 descriptions those points form a cloud. The question is: <strong>what determines where each point lands?</strong></p>
+
+<p>The arithmetic is a variance split, the same idea as asking how much of the variation in people's height is explained by age versus diet versus measurement error. Two steps:</p>
+
+<ol class="steps">
+  <li><strong>Separate the shared part from the spread.</strong> Find the centre of the cloud — the average description. Every point is then "the centre, plus an offset". The share of a typical point's size that is just the centre is the <em>constant</em>; the rest is what actually varies.</li>
+  <li><strong>Split the spread by cause.</strong> For each candidate cause — which topic, which concept, which nudge strength — group the points by that label, and measure how far each group's average sits from the overall centre. A cause that pulls its groups far apart explains a lot; one whose groups all sit on top of each other explains nothing. Whatever is left over is generation randomness.</li>
+</ol>
+
+<p>Because the design is fully balanced — every concept crossed with every topic at every strength — these shares are near-independent and can be read side by side.</p>
+
+<p class="note">The method was checked before use on synthetic data built with known answers: components of deliberately chosen sizes, plus a null case with no nudge effect at all. It recovered the true shares to within a couple of points and correctly reported ~0 for the null, so it does not invent effects that aren't there.</p>
 
 <div class="tablewrap"><table>
 <tbody>
@@ -723,9 +735,23 @@ footer{
 <tr><td style="padding-left:22px">↳ random variation between samples</td><td class="num flat">66.6%</td></tr>
 </tbody></table></div>
 
+<p>Read as an analogy — describing where people live. Almost everyone is on the Earth's surface (the constant). Of the variation that's left, most is <em>which city</em> (the topic), a little is <em>which street</em> (the concept), a sliver is <em>which house number</em> (the nudge) — and a great deal is sloppy measurement.</p>
+
 <div class="take warn">
   <p><strong>The effect is real but small.</strong> The nudge accounts for well under 1% of the variation between descriptions, while the starting topic accounts for 31%. It's consistent, directional and behaviourally calibrated — but it is not what dominates what the model says.</p>
 </div>
+
+<h4>Why 0.75% is still meaningful</h4>
+
+<p>That number is easy to misread as "the nudge barely does anything". Three reasons it isn't:</p>
+
+<p><strong>Two thirds of the spread is dice, not meaning.</strong> The largest single component — the 66.6% residual — is sampling randomness: the model was run at temperature 0.5 and asked six times per cell, so it says something different each time. That is noise in the measurement, not a rival explanation. Compared against the parts that are actually <em>about something</em>, the nudge's share roughly triples.</p>
+
+<p><strong>Being small overall is compatible with being decisive.</strong> Descriptions differ from one another along countless dimensions — which entity, which phrasing, which century, which register. The nudge moves them along exactly <em>one</em>. So it can be a tiny fraction of all the variation while completely settling the specific question you asked. The Chu Suiliang example is the proof: at λ=0 the description says <em>Eastern Jin historian</em>, at λ=+0.6 it says <em>Chinese film director</em>. That is not a subtle shift — but "historian → film director" is one narrow move inside a space where descriptions were already ranging across all of Chinese history.</p>
+
+<p><strong>A consistent small push beats a large erratic one.</strong> The nudge's effect is monotone, bidirectional, direction-specific, and matched to the strength at which behaviour changes. Random directions of identical magnitude produce nothing. An effect that reliably points the same way is evidence about mechanism regardless of how much total variance it moves.</p>
+
+<p class="note"><strong>The honest summary is two sentences, not one.</strong> The nudge moves descriptions consistently and in a way that matters for the question being asked. And what a description mostly says is still determined by which activation it started from, not by what we added to it. Both are true; a write-up that reports only the first is overselling, and one that reports only the second is underselling.</p>
 
 <!-- ============ PART 3 ============ -->
 <div class="part">
