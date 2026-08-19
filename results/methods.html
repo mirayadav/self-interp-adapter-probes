@@ -363,20 +363,42 @@ footer{
 <p>If the constant <span class="mono">b</span> is huge and the activation's contribution is tiny, the description might be mostly pre-written. Can we measure that directly?</p>
 
 <h4>What we did</h4>
-<p>Yes — and without running the model at all. Because the activation is divided by its own length, its contribution always has <em>exactly</em> the same size: <span class="mono">α</span>. And <span class="mono">b</span> is a constant. So the two are just numbers you can read off the 19 kB adapter file and compare. This ran on a laptop in seconds.</p>
+<p>Answered it without running the model at all. Because the activation is divided by its own length before use, its contribution always has <em>exactly</em> the same size — call it <span class="mono">α</span> — no matter which activation you feed in. And <span class="mono">b</span> never changes. So both are just numbers sitting in the 19 kB adapter file. This ran on a laptop in seconds.</p>
+
+<p><strong>Only the ratio between them means anything.</strong> The raw sizes (α = 7.18, ‖b‖ = 20.87) are in arbitrary units — there's no standard scale for a model's internal space, so neither number is interpretable alone. What matters is how big the activation's contribution is <em>relative to</em> the constant:</p>
 
 <div class="stats">
-  <div class="stat"><div class="k">activation's size</div><div class="v">7.18</div><div class="sub">α, fixed for every input</div></div>
-  <div class="stat"><div class="k">constant's size</div><div class="v">20.87</div><div class="sub">‖b‖</div></div>
-  <div class="stat"><div class="k">activation's share</div><div class="v sig">10.6%</div><div class="sub">of the total</div></div>
+  <div class="stat"><div class="k">the ratio α / ‖b‖</div><div class="v sig">0.344</div><div class="sub">the only quantity that matters</div></div>
+  <div class="stat"><div class="k">activation's share</div><div class="v sig">10.6%</div><div class="sub">of what the model receives</div></div>
   <div class="stat"><div class="k">widest possible gap</div><div class="v sig">40.2°</div><div class="sub">between any two inputs</div></div>
 </div>
+
+<h4>Where those two numbers come from</h4>
+
+<p><strong>The share.</strong> Squaring the formula gives <span class="mono">‖f‖² = α² + 2α⟨ĥ,b⟩ + ‖b‖²</span>. Averaged over all possible activations the middle term disappears — <span class="mono">b</span> is one fixed vector while the activation direction ranges over every direction equally, so it points with and against <span class="mono">b</span> equally often. That leaves a clean right-angle split, <span class="mono">α² + ‖b‖²</span>, and the activation's share is <span class="mono">α²/(α²+‖b‖²)</span> = 10.6%.</p>
+
+<p><strong>The gap.</strong> Every possible output lies on a sphere of radius <span class="mono">α</span> centred on <span class="mono">b</span>. Viewed from the origin, the furthest a direction can swing is where your line of sight just grazes that sphere — the tangent, at <span class="mono">sin θ = α/‖b‖</span>. That's 20.1°, so two outputs can differ by at most twice that.</p>
+
+<p>Both formulas contain only the ratio, which is why it's the number worth quoting:</p>
+
+<div class="tablewrap"><table>
+<caption>If the adapter had been trained differently</caption>
+<thead><tr><th class="num">ratio α/‖b‖</th><th class="num">activation's share</th><th class="num">widest gap</th></tr></thead>
+<tbody>
+<tr><td class="num">0.10</td><td class="num flat">1.0%</td><td class="num flat">11.5°</td></tr>
+<tr><td class="num">0.20</td><td class="num flat">3.8%</td><td class="num flat">23.1°</td></tr>
+<tr class="hi"><td class="num">0.344 (actual)</td><td class="num">10.6%</td><td class="num">40.2°</td></tr>
+<tr><td class="num">0.50</td><td class="num flat">20.0%</td><td class="num flat">60.0°</td></tr>
+<tr><td class="num">0.90</td><td class="num flat">44.8%</td><td class="num flat">128.3°</td></tr>
+</tbody></table></div>
+
+<p class="note">We checked the algebra against the model rather than trusting it: sampling 1,000 random activations and measuring how similar their outputs actually were gave 0.89426, against a predicted 0.89429 — and no sampled output fell outside the 20.1° bound.</p>
 
 <h4>What we found</h4>
 <p>The activation is about a tenth of what the model receives; the constant is the rest. Geometrically, every possible input the model can be handed lives inside a single <strong>40-degree cone</strong>. Two completely unrelated topics arrive looking almost identical.</p>
 
 <div class="take">
-  <p><strong>But this does not mean the prior wins.</strong> Part 1 showed the model picks the right topic out of 49,637 — using only that cone. So it must be <em>extremely</em> sensitive to small differences. This measures how much room the activation has, not how well it's used. It also predicts the sweep should work.</p>
+  <p><strong>But this does not mean the prior wins.</strong> Part 1 showed the model picks the right topic out of 49,637 — using only that cone. So it must be <em>extremely</em> sensitive to small differences. A tenth of the <em>signal</em> is not a tenth of the <em>meaning</em>: a small, consistent nudge in a 4,096-dimensional space can carry a great deal, and the model is nonlinear enough to read it. This measures how much room the activation has, not how well the room is used — which is exactly why the sweep is needed. It also predicts the sweep should work.</p>
 </div>
 
 <h3>2 · What does the model say when you give it nothing?</h3>
