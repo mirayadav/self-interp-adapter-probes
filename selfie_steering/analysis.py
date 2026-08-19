@@ -307,9 +307,17 @@ def main():
     cells.to_parquet(a.cells_out, index=False)
 
     def paired_boot(delta, n_boot=10000, seed=0):
-        """Bootstrap a per-concept difference. Paired: removes the between-concept
-        variance that dominates the unpaired CIs, which is the right test when the
-        same 10 concepts appear in both conditions."""
+        """Bootstrap a within-concept difference between two conditions.
+
+        Paired BY CONCEPT: each concept is scored under both conditions, so the
+        difference is taken within a concept before averaging. This removes the
+        component shared by both conditions for that concept (some concepts are
+        simply easier to score; measured r = 0.31 between conditions at lambda=1),
+        and is the correct model since the same concepts appear in both conditions
+        and are therefore not independent samples.
+
+        Note the returned p floors at 1/n_boot, so report it as "p < 1/n_boot"
+        rather than as an exact value."""
         d = np.asarray([x for x in delta if np.isfinite(x)], float)
         if len(d) < 2:
             return dict(n=len(d), mean=np.nan, lo=np.nan, hi=np.nan, p=np.nan)

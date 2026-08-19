@@ -32,7 +32,7 @@
 <h2 id="takeaways">High level takeaways</h2>
 
 <ol>
-<li><p><strong>The description tracks controlled changes to the activation.</strong> Adding a concept direction moves the description toward that concept and subtracting it moves the description away, while a random direction of the same size does nothing at all. Under a paired bootstrap over 40 concepts the difference holds at every non zero strength (p = 0.0001 throughout), and it sits at exactly zero when I add nothing, which is the sanity check I most wanted to pass.</p></li>
+<li><p><strong>The description tracks controlled changes to the activation.</strong> Adding a concept direction moves the description toward that concept and subtracting it moves the description away, while a random direction of the same size does nothing at all. Under a paired bootstrap over 40 concepts the difference holds at every non zero strength (p &lt; 0.0001 throughout), and it sits at exactly zero when I add nothing, which is the sanity check I most wanted to pass.</p></li>
 
 <li><p><strong>The self interpretation tracks behavior almost point for point.</strong> Plotting the description curve against the behavioral curve across the same steering strengths gives a correlation of 0.997, with a mean absolute difference of 0.022. A description that only responded to large interventions would produce a flatter curve that rises later than the behavioral one, and that is not what happens here.</p></li>
 
@@ -77,19 +77,19 @@
   <p>I measured how bad this is by training a classifier on some concepts and testing it on concepts it had never seen. It still separates positives from negatives 97% of the time, on style alone. A difference of means steering vector, mean positive minus mean negative, would encode "AxBench voice" rather than the concept. Worse, since style is a real and consistent direction, that vector would have passed my random direction control. I would have reported a confident false positive.</p>
 </div>
 
-<p>The fix is the same mean ablation the paper applies to its own contrastive topic vectors. Subtracting the mean across all concepts cancels the shared component and leaves what is distinctive to each one. I also switched to building vectors from positives only rather than positives minus negatives, because the two sets of questions turn out to be completely disjoint. Differencing them imports an artifact from the prompt distribution.</p>
+<p>The fix is the same mean ablation the paper applies to its own contrastive topic vectors. Subtracting the mean across all concepts cancels the shared component and leaves what is distinctive to each one. I also switched to building vectors from positives only rather than positives minus negatives, because the two sets of questions turn out to be completely disjoint. Subtracting one from the other would build in a difference between two sets of questions rather than between two sets of answers.</p>
 
-<p>What surprised me most was the gap between the text level check and the real thing. In word count space the shared component looked like 23% of a typical vector. Measured on actual Llama activations it was <strong>96%</strong>. Every concept vector was very nearly the same vector, with gambling and plant virus classification sitting at 0.92 similarity. After subtracting the average they become essentially unrelated, the leftover similarities turn semantically sensible, and rebuilding each vector from a different half of its examples gives a 0.94 match. I think that lesson generalizes. Dense activations carry register far more strongly than text statistics suggest, so check confounds in the space you actually intervene in.</p>
+<p>What surprised me most was the gap between the text level check and the real thing. Measured on the text, the shared component looked like 23% of a typical vector. Measured on the actual Llama activations, it was <strong>96%</strong>. Every concept vector was very nearly the same vector, with gambling and plant virus classification sitting at 0.92 similarity. After subtracting the average they become essentially unrelated, the leftover similarities turn semantically sensible, and rebuilding each vector from a different half of its examples gives a 0.94 match. I think that lesson generalizes. Checking on the text underestimated the problem by a factor of four, because two passages can share a tone without sharing much vocabulary, while the activations encode that tone directly. A confound is worth measuring on the activations themselves rather than on the text they came from.</p>
 
-<h3>How I scored "does this look like the concept"</h3>
+<h3>How I scored "does this look like the concept?"</h3>
 
-<p>The obvious method, measuring similarity between the description and the concept, is not trustworthy. That number drifts upward whenever the text becomes longer or vaguer, which means generic filler would register as success. I made it a multiple choice question instead. Compare the text to the right concept and to 40 other concept descriptions, then score the fraction of the alternatives it beats. Chance sits at 0.5. Generic drift lifts the right answer and the wrong answers together, so it cancels.</p>
+<p>The obvious method, measuring similarity between the description and the concept, is not trustworthy. That number drifts upward whenever the text becomes longer or vaguer, which means generic filler would register as success. I made it a multiple choice question instead. Embed the description, embed the right concept's label and 40 other concept labels, then take the cosine similarity between the description embedding and each label embedding. The score is the fraction of the 40 alternatives that the correct label beats, so chance sits at 0.5. Generic drift lifts the right answer and the wrong answers together, so it cancels.</p>
 
 <p>I tracked three further measures as checks. The first is a keyword match rate computed by substring matching, which uses no embeddings at all, so the result does not rest entirely on one embedding model. The second and third are degeneration measures, specifically bigram diversity and the per token negative log likelihood of the output under the unsteered model. The last is similarity to the description's original topic, which lets me observe the tradeoff rather than only the gain.
 
 <h2 id="results">Key experiments and results</h2>
 
-<h3>1. Does the released adapter work, and what does the prior say alone</h3>
+<h3>1. Does the released adapter work, and what does the prior say alone?</h3>
 
 <p>1000 held out Wikipedia topics, retrieval index over all 49,637, six generations each.</p>
 
@@ -102,7 +102,7 @@
 <tr><td>bias only, f(0)=b</td><td class="num dim">0.0%</td><td class="num dim">0.0%</td><td class="num dim">1.0%</td></tr>
 </tbody></table></div>
 
-<p>The paper reports 82.9% recall@1. I obtain 79.3% on a 1000 topic sample, which I consider a clean reproduction. Chance is 0.002%, so the untrained arm's 2.0% recall@100 sits about ten times above chance and still carries no useful signal.</p>
+<p>The paper reports 82.9% recall@1. I obtain 79.3% on a 1000 topic sample, which I consider a clean reproduction. Picking k topics at random out of 49,637 finds the right one k/49,637 of the time, which puts chance at 0.002% for recall@1 and 0.2% for recall@100. The untrained version's 2.0% at recall@100 is therefore about ten times chance, and still carries no useful signal.</p>
 
 <p>The bias only row is the one I find most instructive, because those descriptions read as fluent and specific while being entirely invented.</p>
 
@@ -116,7 +116,7 @@
   <p><b>Finding</b> · the reproduction holds, and the learned prior identifies nothing on its own while producing confident fabrications. "The bias accounts for 85% of the improvement" is fully compatible with the bias knowing nothing about the specific activation, which is what the authors say and what this measures.</p>
 </div>
 
-<h3>2. Do the steering directions actually change behavior</h3>
+<h3>2. Do the steering directions actually change behavior?</h3>
 
 <p>This step is what separates the rest of the work from a correlation. Before touching self interpretation at all, I added the direction into the residual stream during ordinary generation and measured whether the answers changed, and whether the model was still producing coherent English.</p>
 
@@ -135,14 +135,14 @@
   <p><b>Finding</b> · the intervention is behaviorally real and monotone, but only strengths up to about 1 are interpretable. Past that I am measuring damage, so I restricted the rest of the analysis to that band.</p>
 </div>
 
-<h3>3. Does the self description follow</h3>
+<h3>3. Does the self interpretation follow?</h3>
 
 <p>The main experiment. For each activation I added the concept direction at seven strengths across 40 concepts, ran the result through the adapter, injected it, and generated six descriptions. Because the adapter normalizes its input, adding a direction can only rotate it and never change its size, so no size confound can explain the result. That is a useful property of this adapter form that I did not expect going in.</p>
 
-<p>I ran three control arms alongside, each aimed at a specific way the main result could be spurious.</p>
+<p>I ran three controls alongside, each aimed at a specific way the main result could be spurious.</p>
 
 <div class="tablewrap"><table>
-<thead><tr><th>Arm</th><th>The worry it rules out</th></tr></thead>
+<thead><tr><th>Control</th><th>The worry it rules out</th></tr></thead>
 <tbody>
 <tr><td><b>random direction</b></td><td>the description changes whenever you disturb the activation at all, with nothing to do with meaning</td></tr>
 <tr><td><b>shared voice direction</b></td><td>the description follows <em>any</em> real and consistent direction. A random vector cannot test this, since the model has never represented one</td></tr>
@@ -160,22 +160,22 @@
   <figcaption><b>The description follows the activation, in both directions.</b> Shaded band and error bars are 95% bootstrap confidence intervals over 40 concepts. Both controls stay flat across the whole range. The steering vector alone reference saturates immediately, which is what bounds the interpretable range.</figcaption>
 </figure>
 
-<p>Reading across, the concept arm climbs steadily and moves both ways. Push the activation toward the concept and the description follows. Push it away and the description moves away. Both controls sit flat. Under a paired bootstrap over concepts, which is the right test since the same concepts appear in every condition, the gap holds everywhere except at zero.</p>
+<p>Reading across, the concept curve climbs steadily and moves both ways. Push the activation toward the concept and the description follows. Push it away and the description moves away. Both controls sit flat. For significance I used a paired bootstrap, pairing by concept. Each of the 40 concepts is scored twice, once with its steering direction added and once with a random direction added, so I take the difference within each concept and end up with 40 numbers instead of two groups of 40. Resampling those 40 differences with replacement 10,000 times shows how far the average would move if I had drawn a different set of concepts. Pairing this way matters because the two conditions are correlated across concepts (r = 0.31), meaning some concepts are simply easier to score than others, and taking the difference within a concept removes that shared component. The gap holds everywhere except at zero.</p>
 
 <div class="tablewrap"><table>
-<caption>Concept arm minus random arm, paired over concepts</caption>
+<caption>Concept minus random direction, paired over concepts</caption>
 <thead><tr><th class="num">λ</th><th class="num">difference</th><th class="num">95% CI</th><th class="num">p</th></tr></thead>
 <tbody>
-<tr><td class="num">−1.0</td><td class="num">−0.108</td><td class="num">[−0.130, −0.088]</td><td class="num sig">0.0001</td></tr>
-<tr><td class="num">−0.6</td><td class="num">−0.060</td><td class="num">[−0.074, −0.048]</td><td class="num sig">0.0001</td></tr>
-<tr><td class="num">−0.3</td><td class="num">−0.019</td><td class="num">[−0.027, −0.013]</td><td class="num sig">0.0001</td></tr>
+<tr><td class="num">−1.0</td><td class="num">−0.108</td><td class="num">[−0.130, −0.088]</td><td class="num sig">&lt;0.0001</td></tr>
+<tr><td class="num">−0.6</td><td class="num">−0.060</td><td class="num">[−0.074, −0.048]</td><td class="num sig">&lt;0.0001</td></tr>
+<tr><td class="num">−0.3</td><td class="num">−0.019</td><td class="num">[−0.027, −0.013]</td><td class="num sig">&lt;0.0001</td></tr>
 <tr class="hi"><td class="num">0.0</td><td class="num">−0.000</td><td class="num">[−0.000, +0.000]</td><td class="num">0.49</td></tr>
-<tr><td class="num">+0.3</td><td class="num">+0.082</td><td class="num">[+0.068, +0.097]</td><td class="num sig">0.0001</td></tr>
-<tr><td class="num">+0.6</td><td class="num">+0.314</td><td class="num">[+0.269, +0.360]</td><td class="num sig">0.0001</td></tr>
-<tr><td class="num">+1.0</td><td class="num">+0.516</td><td class="num">[+0.460, +0.569]</td><td class="num sig">0.0001</td></tr>
+<tr><td class="num">+0.3</td><td class="num">+0.082</td><td class="num">[+0.068, +0.097]</td><td class="num sig">&lt;0.0001</td></tr>
+<tr><td class="num">+0.6</td><td class="num">+0.314</td><td class="num">[+0.269, +0.360]</td><td class="num sig">&lt;0.0001</td></tr>
+<tr><td class="num">+1.0</td><td class="num">+0.516</td><td class="num">[+0.460, +0.569]</td><td class="num sig">&lt;0.0001</td></tr>
 </tbody></table></div>
 
-<p>The zero row is the check I care about most. There the two arms run the same computation, and they come out identical to four decimal places. If that row had shown an effect, something in my pipeline would have been broken.</p>
+<p>The zero row is the check I care about most. There the two conditions run the same computation, and they come out identical to four decimal places. If that row had shown an effect, something in my pipeline would have been broken.</p>
 
 <p>The qualitative version reads better than the statistics. Here is one activation, for the topic <em>Arabic music</em>, with the concept <em>awards and nominations for performances in film and television</em> added at increasing strength.</p>
 
@@ -190,10 +190,10 @@
 <p>This is easiest to read from the middle outward. With no nudge the model gets the topic right, and once I add a little the word Arabic survives while the domain slides from music to cinema, so the output blends the activation with the direction rather than replacing one with the other. Subtracting does the mirror image, since Arabic still survives while the domain slides toward textiles and away from film. If I push too far in either direction the topic washes out entirely and I am left with pure concept on one side and unrelated content on the other, which is exactly what the nudge alone control predicts and why I only trust the middle of the range.</p>
 
 <div class="finding">
-  <p><b>Finding</b> · the description tracks the activation, specifically and in both directions, and a random direction of the same size does not reproduce it. At λ=0.3 the concept arm sits at 0.49 while the steering vector alone reference is already at 0.97, so the activation is still doing most of the work. I capped the grid at λ=1 for exactly this reason.</p>
+  <p><b>Finding</b> · the description tracks the activation, specifically and in both directions, and a random direction of the same size does not reproduce it. At λ=0.3 the concept curve sits at 0.49 while the steering vector alone reference is already at 0.97, so the activation is still doing most of the work. I capped the grid at λ=1 for exactly this reason.</p>
 </div>
 
-<h3>4. Does it follow at the right strength, and how large is the effect</h3>
+<h3>4. Does it follow at the right strength, and how large is the effect?</h3>
 
 <p>Both experiments use the same λ scale and the same 40 concepts, so I can plot them against each other directly.</p>
 
@@ -227,13 +227,13 @@
 
 <h2 id="wrong">What went wrong, and how I caught it</h2>
 
-<p>I found two of these only because a number did not look right and I followed it up. I think they are the most useful part of this project to document, since both are easy mistakes to make and neither one announces itself.</p>
+<p>I found two of these only because a number did not look right and I followed it up. I think they are the most useful part of this project to document, since both are easy mistakes to make.</p>
 
 <div class="aside">
   <div class="lbl">Error 1 · a control that could not have detected anything</div>
   <p>My shared voice control returned <strong>0.5000000000</strong> at ten of the eleven strengths I tested. A genuine measurement does not behave that way, so I investigated.</p>
   <p>The shared voice direction is a single vector used for every concept, so for any given activation it produces the identical description across all of them. I then scored that one description against each concept in turn, each against the others, which counts every ordered pair exactly once and forces the average to exactly a half. The number was arithmetic rather than measurement.</p>
-  <p>That control would have read 0.500 even if the direction had shoved every description toward one concept, and I had been treating it as my strongest control. The fix is to draw the comparison pool from concepts outside the set being tested, so wins and losses cannot cancel. Once I did that the arm gave a genuine flat result instead of a forced one. The general lesson is that a rank against alternatives metric needs its targets and its alternatives drawn from separate sets.</p>
+  <p>That control would have read 0.500 even if the direction had shoved every description toward one concept, and I had been treating it as my strongest control. The fix is to draw the comparison pool from concepts outside the set being tested, so wins and losses cannot cancel. Once I did that the control gave a genuine flat result instead of a forced one. The general lesson is that a rank against alternatives metric needs its targets and its alternatives drawn from separate sets.</p>
 </div>
 
 <div class="aside">
@@ -251,11 +251,11 @@
 
 <li><p><strong>I selected favorable concepts twice.</strong> First for being clean in the data, then for steering well without breaking fluency. These results describe the favorable case rather than the average concept. <em>Next step.</em> Report the full distribution across all screened concepts, including the ones that barely steer.</p></li>
 
-<li><p><strong>One confound in the data survives.</strong> AxBench's positive and negative examples answer completely different questions, and those questions were selected to suit their concept, which leaves the vector blending the concept in the response with the topics of its prompts. Subtracting the average cannot fix this, because the question content is itself tied to the concept. <em>Next step.</em> Add a control arm built from the questions alone, to bound how much of the effect comes from prompt topic.</p></li>
+<li><p><strong>One confound in the data survives.</strong> AxBench's positive and negative examples answer completely different questions, and those questions were selected to suit their concept, which leaves the vector blending the concept in the response with the topics of its prompts. Subtracting the average cannot fix this, because the question content is itself tied to the concept. <em>Next step.</em> Add a control built from the questions alone, to bound how much of the effect comes from prompt topic.</p></li>
 
 <li><p><strong>I only tested one setup.</strong> Everything here runs on a single model at a single layer with one adapter architecture, so I do not know how far it generalizes. The adapters trained on sparse autoencoder features give their activation term less than half the relative size that the topic adapter does, which I would expect to change the answer. <em>Next step.</em> Repeat on the Goodfire and Llama Scope adapters, and at a second layer.</p></li>
 
-<li><p><strong>Small effect size and a modest sample.</strong> Confidence intervals over concepts are wide because the concept is the unit of replication and there are not many of them. <em>Next step.</em> Run more concepts, which is cheap now that the coherence gate is fixed. That gate was the binding constraint, not compute.</p></li>
+<li><p><strong>Small effect size and a modest sample.</strong> Confidence intervals over concepts are wide because the concept is the unit of replication and there are not many of them. <em>Next step.</em> Run more concepts, which is cheap now that the coherence gate is fixed.</p></li>
 
 <li><p><strong>Scoring leans on one embedding model.</strong> The same embedder scores the screen that selects concepts and the sweep that measures the effect. My string matching check agrees with it, which is reassuring, but the two are not independent enough for me to rely on. <em>Next step.</em> Score with a second embedder and an LLM judge.</p></li>
 </ul>
