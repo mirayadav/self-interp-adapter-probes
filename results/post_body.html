@@ -1,0 +1,278 @@
+<div class="wrap">
+
+<header>
+  <p class="kicker">← All research</p>
+  <h1>Reading the Activation, Not the Prior</h1>
+  <p class="subtitle">Project · Mechanistic interpretability, Llama 3.1 8B</p>
+</header>
+
+<nav class="toc">
+  <a href="#summary">Summary</a>
+  <a href="#takeaways">High level takeaways</a>
+  <a href="#background">Background</a>
+  <a href="#method">Method</a>
+  <a href="#results">Key experiments and results</a>
+  <a href="#wrong">What I got wrong</a>
+  <a href="#limitations">Limitations and future work</a>
+  <a href="#links">Links</a>
+</nav>
+
+<p><strong>Code</strong> · <a href="https://github.com/mirayadav">github.com/mirayadav</a></p>
+
+<h2 id="summary">Summary</h2>
+
+<p>I reproduced the main result from <a href="https://arxiv.org/abs/2602.10352">Self interpretation in language models via adapter probes</a> and then ran an extension to test something the paper leaves open. The paper trains a tiny adapter, as few as <span class="mono">d+1</span> parameters, that maps a model's internal activation back into its own embedding space so the model can describe what that activation represents. It works well, and in my reproduction it identifies the right topic out of 49,637 candidates 79.3% of the time, against 0.0% for an untrained baseline.</p>
+
+<p>My critique is that the paper shows descriptions correspond to activations but never changes one activation on purpose to see whether the description follows. That leaves open the possibility that the model is pattern matching from a learned prior rather than reading the specific vector you hand it. To test this, I took an activation, added a steering direction for a known concept at varying strength, and measured whether the description moved toward that concept. I also verified separately that the same intervention changes the model's behaviour, which gave me a baseline for how much the description should move.</p>
+
+<p>It does move, and the effect holds up under the checks I care about. Adding the direction shifts the description toward the concept while subtracting it shifts the description away, and a random direction of the same size does nothing, so the response is specific to the direction I chose rather than to disturbance in general. The description also shifts at the same intervention strength that changes the model's behaviour. While I think that is real evidence, the effect is small once you measure it against everything else that moves a description around, and getting to the answer at all meant catching two problems in my own setup that would each have produced a confident false positive.</p>
+
+<p>This matters to me because the paper's framing is about trustworthy self report for alignment, the idea that a model could tell us what it is doing internally. If we want to rely on that to catch a model misrepresenting its own reasoning, a correspondence between description and activation is not enough. We need evidence that the report tracks the internal state, and I see this as one step in that direction rather than a resolution.</p>
+
+<h2 id="takeaways">High level takeaways</h2>
+
+<ol>
+<li><p><strong>The description tracks controlled changes to the activation.</strong> Adding a concept direction moves the description toward that concept and subtracting it moves the description away, while a random direction of the same size does nothing at all. Under a paired bootstrap over 40 concepts the difference holds at every non zero strength (p = 0.0001 throughout), and it sits at exactly zero when I add nothing, which is the sanity check I most wanted to pass.</p></li>
+
+<li><p><strong>The self report tracks behaviour almost point for point.</strong> Plotting the description curve against the behavioural curve across the same steering strengths gives a correlation of 0.997, with a mean absolute difference of 0.022. If the description had only registered the change long after the model's outputs visibly shifted, I would read that as the report picking up gross effects only, but it does not lag that way.</p></li>
+
+<li><p><strong>The learned prior carries no information about the specific activation.</strong> Given a vector of zeros, the adapter still produces fluent and oddly specific descriptions that identify nothing at all, scoring 0.0% top 1. This agrees with the paper rather than contradicting it, since the authors already say the bias supplies format while the activation supplies meaning. What I would add is that the prior is not a neutral scaffold, because on its own it confabulates.</p></li>
+
+<li><p><strong>The effect is real and small, and two of my own design choices nearly faked it.</strong> The nudge explains under 1% of the variation between descriptions, against 38% for which activation they started from. I also built one control that was mathematically pinned to chance and could not have detected anything, and one filter that selected against the effect it was meant to protect. I describe both below, since the process of catching them is the more transferable part of this work.</p></li>
+</ol>
+
+<h2 id="background">Background</h2>
+
+<p>Most interpretability work asks a human or a separate model to label internal features, which is slow and noisy, so this approach asks the model to do it instead. Following the Patchscopes framing, you take an activation from some layer, transform it with a learned mapping, and inject the result into a fixed prompt, <em>"What is the meaning of ___?"</em>, as if it were a token embedding. The frozen model then describes it.</p>
+
+<p>The mapping is deliberately tiny. The scalar affine version is</p>
+
+<pre><code>f(h) = α · (h / ‖h‖) + b</code></pre>
+
+<p>That is one scalar and one vector of 4096 numbers, and two properties of it matter for everything below. The activation gets divided by its own length, so only its direction carries information while its size is thrown away. The vector <span class="mono">b</span> is a constant that gets added identically no matter what you feed in, so it works as a learned default for how to answer.</p>
+
+<p>The paper reports that this bias accounts for roughly 85% of the improvement over an untrained baseline, and reads it as the bias supplying format while the activation supplies meaning. They back that up with a zero vector test and, more convincingly, by training on labels written in capitals and showing the outputs come out both capitalised and semantically correct. I want to be precise here because I initially overstated it. The authors do not claim the prior does most of the semantic work, and my results agree with them.</p>
+
+<p>What the paper does not do is intervene. All of its evidence has the form "descriptions match activations across many examples". You would see the same thing if the model had simply learned a good prior over what activations in this distribution tend to mean. My question was whether the description responds when you change one activation on purpose.</p>
+
+<p>Before running anything I expected the adapter's geometry might settle this by itself, and while it does not, working out why turned out to be the useful part.</p>
+
+<h2 id="method">Method</h2>
+
+<h3>Setup, and who did what</h3>
+
+<p>Llama 3.1 8B Instruct, layer 19 residual stream, using the authors' released adapter checkpoints. I trained nothing, so this reproduces their artefact rather than their training run. Scoring uses their embedding model, gte large, throughout. The final sweep is 134,406 generations, run on a single rented GPU for a few dollars of compute.</p>
+
+<p>I think the attribution here should be explicit. The research question, the critique of the paper, and the experimental design are mine, and I wrote them up in an application I submitted before starting any of this work. I wrote the implementation with Claude Code, which accelerated the work considerably while still requiring continuous direction. Most of what follows came from interrogating outputs that did not look right. The two errors in <a href="#wrong">What I got wrong</a> are ones I caught by asking why a number looked the way it did.</p>
+
+<h3>Where the steering directions come from</h3>
+
+<p>I needed directions that mean something nameable, so the model has vocabulary to report them, and that demonstrably change behaviour, so I have an independent baseline. I used <a href="https://huggingface.co/datasets/pyvene/axbench-concept500">AxBench CONCEPT500</a>, which gives me, for each of about 2000 concepts, example responses that express it and example responses that do not. Its concepts come from GemmaScope auto interp labels, so they sit in the same descriptive register the adapter was trained on. That matters, because a concept the model cannot name gives you a null result you cannot interpret.</p>
+
+<p>I checked the data before using it, and that is where the first problem showed up.</p>
+
+<div class="aside">
+  <div class="lbl">Failure mode in the data</div>
+  <p><strong>Every positive example is written in the same voice.</strong> An LLM generated AxBench's positives to express a concept, while the negatives are ordinary responses, which leaves the positives sharing a flowery register that the negatives lack. The word <span class="mono">"akin"</span> shows up in 17.2% of positives and 0% of negatives. Positives run 46% longer.</p>
+  <p>I measured how bad this is by training a classifier on some concepts and testing it on concepts it had never seen. It still separates positives from negatives 97% of the time, on style alone. A steering vector built as mean positive minus mean negative would encode "AxBench voice" rather than the concept. Worse, since style is a real and consistent direction, that vector would have passed my random direction control. I would have reported a confident false positive.</p>
+</div>
+
+<p>The fix is the same trick the paper uses for its own topic vectors. Subtract the average across all concepts, so whatever they share cancels and what makes each one distinctive survives. I also switched to building vectors from positives only rather than positives minus negatives, because the two sets of questions turn out to be completely disjoint. Differencing them imports an artefact from the prompt distribution.</p>
+
+<p>What surprised me most was the gap between the text level check and the real thing. In word count space the shared component looked like 23% of a typical vector. Measured on actual Llama activations it was <strong>96%</strong>. Every concept vector was very nearly the same vector, with gambling and plant virus classification sitting at 0.92 similarity. After subtracting the average they become essentially unrelated, the leftover similarities turn semantically sensible, and rebuilding each vector from a different half of its examples gives a 0.94 match. I think that lesson generalises. Dense activations carry register far more strongly than text statistics suggest, so check confounds in the space you actually intervene in.</p>
+
+<h3>How I scored "does this look like the concept"</h3>
+
+<p>The obvious method, measuring similarity between the description and the concept, is not trustworthy. That number drifts upward whenever the text becomes longer or vaguer, which means generic filler would register as success. I made it a multiple choice question instead. Compare the text to the right concept and to 40 other concept descriptions, then score the fraction of the alternatives it beats. Chance sits at 0.5. Generic drift lifts the right answer and the wrong answers together, so it cancels.</p>
+
+<p>I tracked three further measures as checks. The first is a plain string match rate, which uses no embeddings at all, so the result does not rest entirely on one embedding model. The second and third are coherence measures, specifically the rate of repeated word pairs and how improbable the text appears to the unsteered model. The last is similarity to the description's original topic, which lets me observe the tradeoff rather than only the gain.
+
+<h2 id="results">Key experiments and results</h2>
+
+<h3>1. Does the released adapter work, and what does the prior say alone</h3>
+
+<p>1000 held out Wikipedia topics, retrieval index over all 49,637, six generations each.</p>
+
+<div class="tablewrap"><table>
+<caption>Can the description identify the topic, out of 49,637</caption>
+<thead><tr><th>Version</th><th class="num">Top 1</th><th class="num">Top 5</th><th class="num">Top 100</th></tr></thead>
+<tbody>
+<tr class="hi"><td>trained adapter</td><td class="num">79.3%</td><td class="num">86.6%</td><td class="num">95.9%</td></tr>
+<tr><td>untrained</td><td class="num dim">0.0%</td><td class="num dim">0.1%</td><td class="num dim">2.0%</td></tr>
+<tr><td>bias only</td><td class="num dim">0.0%</td><td class="num dim">0.0%</td><td class="num dim">1.0%</td></tr>
+</tbody></table></div>
+
+<p>The paper reports 82.9% for the top guess. I obtain 79.3% on a 1000 topic sample, which I consider a clean reproduction. Chance here is 0.002%, so the untrained arm's 2.0% at top 100 is about ten times chance and still nothing.</p>
+
+<p>The bias only row is the one I find most instructive, because those descriptions read as fluent and specific while being entirely invented.</p>
+
+<div class="quotebox">
+  <div class="qrow"><div class="k">zeros in</div><div class="v">"the director of the 1967 film Blow-Up"</div></div>
+  <div class="qrow"><div class="k">zeros in</div><div class="v">"the journalist who coined the term 'tropism'"</div></div>
+  <div class="qrow"><div class="k">zeros in</div><div class="v">"the opera singer whose voice was used in the recording of the Hallelujah Chorus"</div></div>
+</div>
+
+<div class="finding">
+  <p><b>Finding</b> · the reproduction holds, and the learned prior identifies nothing on its own while producing confident fabrications. "The bias accounts for 85% of the improvement" is fully compatible with the bias knowing nothing about the specific activation, which is what the authors say and what this measures.</p>
+</div>
+
+<h3>2. Do the steering directions actually change behaviour</h3>
+
+<p>This step is what separates the rest of the work from a correlation. Before touching self interpretation at all, I added the direction into the residual stream during ordinary generation and measured whether the answers changed, and whether the model was still producing coherent English.</p>
+
+<figure>
+  <div class="figbox"><!--FIG:behavioral--></div>
+  <div class="legend">
+    <span><i class="sw" style="border-color:var(--signal)"></i>concept present in output, 95% CI</span>
+    <span><i class="sw" style="border-color:var(--flat); border-top-style:dashed"></i>coherence</span>
+  </div>
+  <figcaption><b>Steering works, then breaks the model.</b> Concept presence climbs steadily, but coherence collapses past a strength of about 1. At strength 2 half the word pairs are repeats and the output has become looping keywords. Error bars are 95% confidence intervals over the 60 screened concepts.</figcaption>
+</figure>
+
+<p>The failure mode worth noting is that at strength 2 the concept score sits near its maximum, precisely because the output has degenerated into nothing but concept keywords. The concept metric looks best exactly where the model has most thoroughly broken. Without the coherence measure I would have read that as my strongest result rather than the point of collapse.</p>
+
+<div class="finding">
+  <p><b>Finding</b> · the intervention is behaviourally real and monotone, but only strengths up to about 1 are interpretable. Past that I am measuring damage, so I restricted the rest of the analysis to that band.</p>
+</div>
+
+<h3>3. Does the self description follow</h3>
+
+<p>The main experiment. For each activation I added the concept direction at seven strengths across 40 concepts, ran the result through the adapter, injected it, and generated six descriptions. Because the adapter normalises its input, adding a direction can only rotate it and never change its size, so no size confound can explain the result. That is a useful property of this adapter form that I did not expect going in.</p>
+
+<p>I ran three control arms alongside, each aimed at a specific way the main result could be spurious.</p>
+
+<div class="tablewrap"><table>
+<thead><tr><th>Arm</th><th>The worry it rules out</th></tr></thead>
+<tbody>
+<tr><td><b>random direction</b></td><td>the description changes whenever you disturb the activation at all, with nothing to do with meaning</td></tr>
+<tr><td><b>shared voice direction</b></td><td>the description follows <em>any</em> real and consistent direction. A random vector cannot test this, since the model has never represented one</td></tr>
+<tr><td><b>direction alone, no activation</b></td><td>at high strength the activation gets drowned out and the model is just reading the nudge</td></tr>
+</tbody></table></div>
+
+<figure>
+  <div class="figbox"><!--FIG:sweep--></div>
+  <div class="legend">
+    <span><i class="sw" style="border-color:var(--signal); border-top-width:3px"></i>concept</span>
+    <span><i class="sw" style="border-color:var(--flat)"></i>random direction</span>
+    <span><i class="sw" style="border-color:var(--flat); border-top-style:dotted"></i>shared voice</span>
+    <span><i class="sw" style="border-color:var(--amber); border-top-style:dashed"></i>nudge alone, no activation</span>
+  </div>
+  <figcaption><b>The description follows the activation, in both directions.</b> Shaded band and error bars are 95% bootstrap confidence intervals over 40 concepts. Both controls stay flat across the whole range. The nudge alone reference saturates immediately, which is what bounds the interpretable range.</figcaption>
+</figure>
+
+<p>Reading across, the concept arm climbs steadily and moves both ways. Push the activation toward the concept and the description follows. Push it away and the description moves away. Both controls sit flat. Under a paired bootstrap over concepts, which is the right test since the same concepts appear in every condition, the gap holds everywhere except at zero.</p>
+
+<div class="tablewrap"><table>
+<caption>Concept arm minus random arm, paired over concepts</caption>
+<thead><tr><th class="num">strength</th><th class="num">difference</th><th class="num">95% CI</th><th class="num">p</th></tr></thead>
+<tbody>
+<tr><td class="num">−1.0</td><td class="num">−0.108</td><td class="num">[−0.130, −0.088]</td><td class="num sig">0.0001</td></tr>
+<tr><td class="num">−0.6</td><td class="num">−0.060</td><td class="num">[−0.074, −0.048]</td><td class="num sig">0.0001</td></tr>
+<tr><td class="num">−0.3</td><td class="num">−0.019</td><td class="num">[−0.027, −0.013]</td><td class="num sig">0.0001</td></tr>
+<tr class="hi"><td class="num">0.0</td><td class="num">−0.000</td><td class="num">[−0.000, +0.000]</td><td class="num">0.49</td></tr>
+<tr><td class="num">+0.3</td><td class="num">+0.082</td><td class="num">[+0.068, +0.097]</td><td class="num sig">0.0001</td></tr>
+<tr><td class="num">+0.6</td><td class="num">+0.314</td><td class="num">[+0.269, +0.360]</td><td class="num sig">0.0001</td></tr>
+<tr><td class="num">+1.0</td><td class="num">+0.516</td><td class="num">[+0.460, +0.569]</td><td class="num sig">0.0001</td></tr>
+</tbody></table></div>
+
+<p>The zero row is the check I care about most. There the two arms run the same computation, and they come out identical to four decimal places. If that row had shown an effect, something in my pipeline would have been broken.</p>
+
+<p>The qualitative version reads better than the statistics. Here is one activation, for the topic <em>Arabic music</em>, with the concept <em>awards and nominations for performances in film and television</em> added at increasing strength.</p>
+
+<div class="quotebox">
+  <div class="qrow"><div class="k">−2.0</div><div class="v">the cotton tree's cultivated relative</div></div>
+  <div class="qrow"><div class="k">−1.0</div><div class="v">Arabic weaving patterns in textiles</div></div>
+  <div class="qrow mark"><div class="k">0</div><div class="v">Arabic classical music, also known as Arabic Maqam</div></div>
+  <div class="qrow"><div class="k">+1.0</div><div class="v">Arabic-language cinema, often referred to as 'Arabic cinema' or 'Middle Eastern cinema'</div></div>
+  <div class="qrow"><div class="k">+2.0</div><div class="v">the Academy Award for Best Actor in a Leading Role</div></div>
+</div>
+
+<p>This is easiest to read from the middle outward. With no nudge the model gets the topic right, and once I add a little the word Arabic survives while the domain slides from music to cinema, so the output blends the activation with the direction rather than replacing one with the other. Subtracting does the mirror image, since Arabic still survives while the domain slides toward textiles and away from film. If I push too far in either direction the topic washes out entirely and I am left with pure concept on one side and unrelated content on the other, which is exactly what the nudge alone control predicts and why I only trust the middle of the range.</p>
+
+<div class="finding">
+  <p><b>Finding</b> · the description tracks the activation, specifically and in both directions, and a random direction of the same size does not reproduce it. At a strength of 0.3 the concept arm sits at 0.49 while the nudge alone reference is already at 0.97, so the activation is still doing most of the work. I restricted the grid to a maximum strength of 1 for exactly this reason.</p>
+</div>
+
+<h3>4. Does it follow at the right strength, and how large is the effect</h3>
+
+<p>Both experiments used the same strength scale and the same 40 concepts, so I can plot them against each other directly.</p>
+
+<figure>
+  <div class="figbox"><!--FIG:sensitivity--></div>
+  <div class="legend">
+    <span><i class="sw" style="border-color:var(--signal); border-top-width:3px"></i>what the model says about itself</span>
+    <span><i class="sw" style="border-color:var(--flat); border-top-style:dashed"></i>what the model actually does</span>
+  </div>
+  <figcaption><b>The self report tracks behaviour across the whole range.</b> Correlation between the two curves is 0.997 with a mean absolute difference of 0.022. Measuring where each curve reaches half its range gives 0.557 for behaviour and 0.517 for the self report.</figcaption>
+</figure>
+
+<p>I expected the two to line up at roughly the same point. I did not expect them to lie almost on top of each other. Measuring where each reaches half its range gives 0.557 for behaviour and 0.517 for the description, and across all seven strengths the curves differ by an average of 0.022. This is the result I find most persuasive in the whole project, because a report that only registered gross changes would have produced a visibly flatter or delayed curve.</p>
+
+<div class="finding">
+  <p><b>Finding</b> · the self report shifts at the same intervention strengths that change the model's outputs, and by closely matching amounts, rather than trailing behind.</p>
+</div>
+
+<p>The harder question is how much of the output this actually accounts for, so I decomposed the variation between descriptions into the components that explain it, which are the shared constant every description carries, which activation it started from, which concept I used, the nudge itself, and plain sampling randomness.</p>
+
+<figure>
+  <div class="figbox"><!--FIG:variance--></div>
+  <figcaption><b>The nudge is consistent and small.</b> Shares of the variation around the constant prior, which itself accounts for 72.1% of a typical description. Which activation you started from dominates everything else.</figcaption>
+</figure>
+
+<p>I want to be careful reading this in both directions. The nudge accounts for under 1% of the variation and the activation's identity for 38%, so what a description mostly says depends on which activation it describes, not on what I added. Sixty percent of the remaining spread is sampling randomness at temperature 0.5, which is measurement noise rather than a competing explanation. A small share of total variation is also compatible with settling the specific question being asked. Descriptions vary along countless dimensions. The nudge moves them along one. Going from Arabic classical music to Arabic language cinema is not subtle, but it is one narrow move inside a space that already ranged across every topic in Wikipedia.</p>
+
+<div class="finding">
+  <p><b>Finding</b> · the effect points consistently in the right direction and holds up statistically, and it still is not what dominates what the model says. I think both halves of that need reporting.</p>
+</div>
+
+<h2 id="wrong">What I got wrong</h2>
+
+<p>I found two of these only because a number did not look right and I followed it up. I think they are the most useful part of this project to document, since both are easy mistakes to make and neither one announces itself.</p>
+
+<div class="aside">
+  <div class="lbl">Error 1 · a control that could not have detected anything</div>
+  <p>My shared voice control returned <strong>0.5000000000</strong> at ten of the eleven strengths I tested. A genuine measurement does not behave that way, so I investigated.</p>
+  <p>The shared voice direction is a single vector used for every concept, so for any given activation it produces the identical description across all of them. I then scored that one description against each concept in turn, each against the others, which counts every ordered pair exactly once and forces the average to exactly a half. The number was arithmetic rather than measurement.</p>
+  <p>That control would have read 0.500 even if the direction had shoved every description toward one concept, and I had been treating it as my strongest control. The fix is to draw the comparison pool from concepts outside the set being tested, so wins and losses cannot cancel. Once I did that the arm gave a genuine flat result instead of a forced one. The general lesson is that a rank against alternatives metric needs its targets and its alternatives drawn from separate sets.</p>
+</div>
+
+<div class="aside">
+  <div class="lbl">Error 2 · a filter that selected against its own effect</div>
+  <p>I gated concepts on staying coherent across the whole range of strengths, including the extremes I then excluded from interpretation anyway. Only 11 of 60 concepts survived. If you gate on the range you actually analyse, all 60 qualify.</p>
+  <p>The filter was not merely wasteful, it was biased. Steering hard and breaking the model at high strength are the same phenomenon, so "still coherent at strength 2" preferentially kept the concepts that do not do much. Concepts that survived the strict gate had a median behavioural effect of 0.283. The ones it excluded had 0.526. My filter was quietly selecting against the effect I was trying to measure, and it cost me roughly half the observable effect size.</p>
+</div>
+
+<p>There is a smaller one I should mention too. I initially described the zero vector experiment as reframing the paper's claim about the bias, which it does not do, since the authors already run that test and already conclude that the bias supplies format while the activation supplies meaning. My result puts a number on half of a claim they were already making, and I fixed the write up once I went back and reread their discussion section.</p>
+
+<h2 id="limitations">Limitations and future work</h2>
+
+<ul>
+<li><p><strong>This is a sensitivity test, not a causal one.</strong> Steering vectors are not clean semantic representations, so showing the description responds to one is weaker than showing it correctly reports a change whose internal role we already understand. <em>Next step.</em> Intervene on a feature or circuit whose causal role is independently established, such as the name mover heads in the IOI circuit, and test whether the self report describes that.</p></li>
+
+<li><p><strong>I selected favourable concepts twice.</strong> First for being clean in the data, then for steering well without breaking fluency. These results describe the favourable case rather than the average concept. <em>Next step.</em> Report the full distribution across all screened concepts, including the ones that barely steer.</p></li>
+
+<li><p><strong>One confound in the data survives.</strong> AxBench's positive and negative examples answer completely different questions, and those questions were selected to suit their concept, which leaves the vector blending the concept in the response with the topics of its prompts. Subtracting the average cannot fix this, because the question content is itself tied to the concept. <em>Next step.</em> Add a control arm built from the questions alone, to bound how much of the effect comes from prompt topic.</p></li>
+
+<li><p><strong>I only tested one setup.</strong> Everything here runs on a single model at a single layer with one adapter architecture, so I do not know how far it generalises. The adapters trained on sparse autoencoder features give their activation term less than half the relative size that the topic adapter does, which I would expect to change the answer. <em>Next step.</em> Repeat on the Goodfire and Llama Scope adapters, and at a second layer.</p></li>
+
+<li><p><strong>Small effect size and a modest sample.</strong> Confidence intervals over concepts are wide because the concept is the unit of replication and there are not many of them. <em>Next step.</em> Run more concepts, which is cheap now that the coherence gate is fixed. That gate was the binding constraint, not compute.</p></li>
+
+<li><p><strong>Scoring leans on one embedding model.</strong> The same embedder scores the screen that selects concepts and the sweep that measures the effect. My string matching check agrees with it, which is reassuring, but the two are not independent enough for me to rely on. <em>Next step.</em> Score with a second embedder and an LLM judge.</p></li>
+</ul>
+
+<h2 id="links">Links</h2>
+
+<ul>
+<li><a href="https://arxiv.org/abs/2602.10352">Self interpretation in language models via adapter probes</a>, the paper I reproduced and extended</li>
+<li><a href="https://github.com/agencyenterprise/selfie-adapters">agencyenterprise/selfie-adapters</a>, the authors' released code and adapter checkpoints</li>
+<li><a href="https://huggingface.co/datasets/pyvene/axbench-concept500">AxBench CONCEPT500</a>, the steering concept data</li>
+<li><a href="https://huggingface.co/datasets/keenanpepper/fifty-thousand-things">fifty thousand things</a>, the Wikipedia topic dataset</li>
+<li><a href="https://arxiv.org/abs/2401.06102">Patchscopes</a>, the framing this builds on</li>
+</ul>
+
+<footer>
+  Reproduction and extension of arXiv 2602.10352. I wrote the implementation with Claude Code. The research question, experimental design, and analysis are my own.<br>
+  © 2026 Mira Yadav
+</footer>
+
+</div>
