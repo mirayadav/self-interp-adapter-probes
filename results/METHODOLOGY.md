@@ -127,6 +127,19 @@ The checks above are all TF-IDF. Measured on real Llama layer-19 activations:
 Dense activations carry register far more strongly than sparse text statistics do.
 Uncorrected, all 60 concept vectors would have been nearly the same vector.
 
+*How the shared component is measured* (`vectors.py::diagnostics`):
+`‖mean(V)‖ / mean(‖v‖)` — average the 60 raw vectors and compare the length of
+that average to a typical individual length. For 60 *unrelated* vectors the
+average shrinks to ~`1/sqrt(60)` = 0.129; we measured **0.960**, ~7x that. It
+cross-checks against the pairwise cosine: `sqrt((1+(n-1)c)/n)` with c=0.919,
+n=60 gives 0.959 vs the measured 0.960, so the two diagnostics are one fact.
+
+Note 0.960 is a ratio of *lengths*, not energy — the residual is near-orthogonal
+to the shared part, so what remains is `sqrt(1-0.96²)` = **28% by length, 8% by
+energy**. Real signal, submerged under a ~9x larger common-mode component; the
+split-half check (0.939) confirms the residual is signal rather than subtraction
+noise.
+
 ### Corrections applied
 1. **Cross-concept mean-centring**, `v_c ← v_c − mean_{c'}(v_{c'})` — the same
    operation the paper applies to topic vectors. Result: mean pairwise cosine

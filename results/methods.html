@@ -449,7 +449,9 @@ footer{
 <div class="fm">
   <div class="tag">Problem 4 · the proxy lied</div>
   <h5>Inside the model it was four times worse than the text suggested</h5>
-  <p>Everything above was measured on the <em>text</em>. When we finally measured the real activations, the shared "voice" component was <strong>96%</strong> of each vector, not the 23% the text analysis predicted. Every concept vector was very nearly the same vector.</p>
+  <p>Everything above was measured on the <em>text</em>. When we finally measured the real activations, every concept vector turned out to be very nearly the same vector.</p>
+  <p><strong>How we measured it:</strong> average all 60 concept vectors together. If they genuinely pointed in different directions they would mostly cancel out — for 60 unrelated vectors the average shrinks to about 1/√60, or 13% of a typical length. Instead the average came out at <strong>96%</strong> of a typical vector's length. Almost nothing cancelled.</p>
+  <p>That 96% is a ratio of <em>lengths</em>, so it doesn't mean only 4% was left. What remains after subtracting the shared part sits at roughly a right angle to it, so the leftovers work out to <strong>28% by length, about 8% by energy</strong>. The concept signal was real, but submerged under a nine-times-larger component that every concept shared.</p>
 </div>
 
 <h4>The fix</h4>
