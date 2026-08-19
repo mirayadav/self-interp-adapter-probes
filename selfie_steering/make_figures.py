@@ -133,6 +133,11 @@ def fig_variance(dec, out):
     Wb, Hb = 720, 150
     s = [f'<svg viewBox="0 0 {Wb} {Hb}" role="img" aria-label="Share of description variation explained by each factor.">']
     x = 20; y = 34; bw = Wb - 40; bh = 40
+    # Segments too thin to hold their own label get a callout instead. Thin
+    # segments are adjacent by construction, so a straight vertical leader
+    # puts their labels on top of each other; alternate each one to the
+    # opposite side, at its own shoulder height, so neither can collide.
+    small = 0
     for lab, v, col in parts:
         w = max(1.5, v * bw)
         s.append(f'<rect x="{x:.1f}" y="{y}" width="{w:.1f}" height="{bh}" fill="{col}"/>')
@@ -140,9 +145,17 @@ def fig_variance(dec, out):
             s.append(f'<text x="{x+w/2:.1f}" y="{y+bh/2+4:.0f}" text-anchor="middle" font-size="11" '
                      f'font-family="IBM Plex Mono, monospace" fill="#fff">{v*100:.1f}%</text>')
         else:
-            s.append(f'<line x1="{x+w/2:.1f}" y1="{y-4}" x2="{x+w/2:.1f}" y2="{y-14}" stroke="{col}" stroke-width="1.5"/>')
-            s.append(f'<text x="{x+w/2:.1f}" y="{y-18}" text-anchor="middle" font-size="11" font-weight="600" '
-                     f'font-family="IBM Plex Mono, monospace" fill="{col}">{v*100:.2f}%</text>')
+            cx = x + w / 2
+            side = -1 if small % 2 == 0 else 1
+            shoulder = y - 25 if side < 0 else y - 12
+            elbow = cx + side * 30
+            anchor = "end" if side < 0 else "start"
+            s.append(f'<polyline points="{cx:.1f},{y-4} {cx:.1f},{shoulder} {elbow:.1f},{shoulder}" '
+                     f'fill="none" stroke="{col}" stroke-width="1.5"/>')
+            s.append(f'<text x="{elbow+side*4:.1f}" y="{shoulder+4}" text-anchor="{anchor}" font-size="11" '
+                     f'font-weight="600" font-family="IBM Plex Mono, monospace" '
+                     f'fill="{col}">{v*100:.2f}%</text>')
+            small += 1
         x += w
     lx = 20
     for lab, v, col in parts:
