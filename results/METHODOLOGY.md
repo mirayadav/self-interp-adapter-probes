@@ -248,11 +248,35 @@ change in the activation.
 never characterises the geometry that claim implies.
 
 **Method.** `normalize_input=true` means the instance term `α·(h/‖h‖)` has *fixed
-norm*, so every soft token lies on a sphere of radius α centred at `b`. From the
-released 19 kB checkpoint alone: instance share of the second moment about the
-origin is `α²/(α²+‖b‖²)`; the maximum angle any two soft tokens can subtend at the
-origin is `2·arcsin(α/‖b‖)`. In d=4096, random directions are near-orthogonal, so
-`E[cos(f(h_i), f(h_j))] = ‖b‖²/(α²+‖b‖²)`.
+norm*, so every soft token lies on a sphere of radius α centred at `b`. Both
+quantities come from the released 19 kB checkpoint alone, no model run needed.
+
+*Share.* Squaring gives `‖f‖² = α² + 2α⟨ĥ,b⟩ + ‖b‖²`. Averaged over activation
+directions the cross term vanishes — `b` is one fixed vector while `ĥ` ranges over
+the whole sphere, pointing with and against it equally — leaving an orthogonal
+split `α² + ‖b‖²`. Share = `α²/(α²+‖b‖²)` = 51.48/486.98 = **10.6%**.
+
+*Gap.* Viewed from the origin, the furthest a direction can swing is where the
+line of sight is tangent to that sphere: `sin θ = α/‖b‖` → θ = 20.11°, so two soft
+tokens differ by at most `2θ` = **40.2°**. Requires `α < ‖b‖` (origin outside the
+sphere), which holds: 7.17 < 20.87.
+
+**Only the ratio is interpretable.** α = 7.175 and ‖b‖ = 20.869 are in arbitrary
+units — there is no canonical scale for the model's internal space — so neither is
+meaningful on its own. Both derived quantities are functions of `r = α/‖b‖ = 0.344`
+and nothing else: share = `r²/(1+r²)`, gap = `2·arcsin(r)`. Quote the ratio, not
+the raw sizes.
+
+| r = α/‖b‖ | share | widest gap |
+|---|---|---|
+| 0.10 | 1.0% | 11.5° |
+| 0.20 | 3.8% | 23.1° |
+| **0.344 (actual)** | **10.6%** | **40.2°** |
+| 0.50 | 20.0% | 60.0° |
+| 0.90 | 44.8% | 128.3° |
+
+In d=4096 random directions are near-orthogonal, so
+`E[cos(f(h_i), f(h_j))] = ‖b‖²/(α²+‖b‖²)` — checked empirically below.
 
 **Result.**
 
