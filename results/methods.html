@@ -406,6 +406,8 @@ footer{
 <h4>The question</h4>
 <p>If <span class="mono">b</span> really carries 85% of the benefit, what does it say on its own?</p>
 
+<p class="note"><strong>This one is not ours.</strong> The paper already runs it — it applies the adapter to a zero vector and reports generic descriptions (Appendix J), and it already concludes that the bias supplies <em>format</em> while the activation supplies <em>semantics</em>. It supports that with a sharper test than this one: train on ALL-CAPS labels and the outputs come out both capitalised <em>and</em> semantically correct, which separates the two contributions cleanly (Appendix I). All we add is a number.</p>
+
 <h4>What we did</h4>
 <p>Fed the adapter a vector of all zeros, so the model receives only <span class="mono">b</span> and no information whatsoever about any activation.</p>
 
@@ -413,7 +415,8 @@ footer{
 <p>Fluent, confident, specific descriptions — <em>"the director of the 1967 film Blow-Up"</em>, <em>"the journalist who coined the term 'tropism'"</em>. And a top-guess accuracy of <strong>0.0%</strong>. They're completely made up.</p>
 
 <div class="take">
-  <p><strong>This reframes the paper's own headline.</strong> "The bias gives 85% of the improvement" is entirely compatible with the bias knowing <em>nothing</em>. It supplies fluency, format and confidence — the activation supplies all of the actual content.</p>
+  <p><strong>This confirms the paper rather than correcting it.</strong> The authors say the bias supplies format and the activation supplies semantics; 0.0% puts a hard number on the second half — the bias carries <em>no</em> identifying information at all. Someone reading "85% of the improvement" in isolation might assume the prior does most of the work, but the paper never claims that, and this agrees with the paper.</p>
+  <p style="margin-top:10px">The one thing beyond restatement: these outputs aren't merely generic, they're confidently <em>fabricated</em> — real-sounding people, films and dates corresponding to nothing. A prior that invents rather than hedges matters for the paper's own motivation of catching a model that misreports itself.</p>
 </div>
 
 <h3>3 · Building the nudges — and the trap we nearly fell into</h3>
@@ -583,6 +586,39 @@ footer{
 <p><strong>Concepts</strong> are the steering directions — <em>"economic terms related to taxes and subsidies"</em>. They supply the nudge. There are 10, from AxBench, built in experiment 3.</p>
 <p>Every topic is crossed with every concept: 10 × 30 = 300 combinations, each at 11 nudge strengths, each generating 6 descriptions, across 4 versions of the experiment.</p>
 
+<h4>The ten concepts, and how distinct they really are</h4>
+
+<p>Small enough to list in full. "Rise" is how strongly each one steered the model's behaviour in experiment 4; "closest other" is how similar its steering vector is to the most similar of the other nine (0 = unrelated, 1 = identical).</p>
+
+<div class="tablewrap"><table>
+<caption>The 10 swept concepts · ordered by steering strength</caption>
+<thead><tr><th>Concept</th><th class="num">rise</th><th class="num">closest other</th></tr></thead>
+<tbody>
+<tr class="hi"><td>mentions of awards and nominations related to performances in film and television</td><td class="num">0.809</td><td class="num">0.13</td></tr>
+<tr class="hi"><td>economic terms related to taxes and subsidies</td><td class="num">0.780</td><td class="num">0.33</td></tr>
+<tr><td>references to experimental data and measurements related to biological processes</td><td class="num">0.660</td><td class="num">0.61</td></tr>
+<tr><td>references to specific sections or equations within a paper</td><td class="num">0.541</td><td class="num">0.36</td></tr>
+<tr><td>calls to action for clicking links or buttons</td><td class="num">0.471</td><td class="num"><b>0.97</b></td></tr>
+<tr><td>phrases related to reading, reviewing, and managing books or other written content</td><td class="num flat">0.283</td><td class="num">0.33</td></tr>
+<tr><td>phrases that prompt user interaction, particularly clicking on links or buttons</td><td class="num flat">0.271</td><td class="num"><b>0.97</b></td></tr>
+<tr><td>greetings and informal salutations</td><td class="num flat">0.254</td><td class="num">0.61</td></tr>
+<tr><td>scientific terms related to biological processes and conditions</td><td class="num flat">0.240</td><td class="num">0.61</td></tr>
+<tr><td>references to unspecified or vague concepts and ideas</td><td class="num flat">0.219</td><td class="num">0.33</td></tr>
+</tbody></table></div>
+
+<p><strong>Mostly distinct, with one real duplicate.</strong> Averaged across all pairs the steering vectors are essentially unrelated (mean similarity <strong>−0.04</strong>), which is what we want. But two of them are the same concept wearing different words:</p>
+
+<div class="fm">
+  <div class="tag">effectively one concept, not two</div>
+  <h5>similarity 0.97</h5>
+  <p>"calls to action for clicking links or buttons"<br>"phrases that prompt user interaction, particularly clicking on links or buttons"</p>
+  <p>AxBench drew these from two different model layers, so they arrived with different IDs and survived every filter as separate entries. Their steering vectors are all but identical.</p>
+</div>
+
+<p>A second pair is related but genuinely distinguishable at 0.61 — <em>"experimental data and measurements related to biological processes"</em> and <em>"scientific terms related to biological processes"</em>. Everything else sits below 0.4.</p>
+
+<p class="note"><strong>What that costs.</strong> Three things, all in the conservative direction. The effective number of independent concepts is ~9 rather than 10, so the confidence intervals — which treat concepts as independent — are slightly optimistic. The duplicate pair sits in each other's comparison pool, making each nearly impossible to rank first, which <em>depresses</em> their scores rather than inflating them. And the two weakest steerers in the table (0.240, 0.219) are barely above the shared-voice control's 0.153, so the strong aggregate result leans on the top half of this list.</p>
+
 <h4>What we did</h4>
 <p>For scoring, we didn't just ask "does this description look like the concept" — that number creeps up whenever text gets longer or vaguer. Instead we asked <strong>does it look more like the right concept than like the other concepts</strong>. Generic drift then lifts everything equally and shows up as no change.</p>
 
@@ -670,14 +706,14 @@ footer{
 
 <p><strong>It supports the paper.</strong> Self-interpretation isn't just reciting a prior. Change the activation and the description follows, in the right direction, by the right amount, at the same point the model's behaviour changes. And the three ways this could have been a mirage — a generic reaction to disturbance, a reaction to any real direction, or the activation being drowned out — were each checked and ruled out.</p>
 
-<p><strong>It also corrects the paper's framing.</strong> "The bias gives 85% of the improvement" sounds like the prior is doing most of the work. Experiment 2 shows the prior identifies <em>nothing</em> on its own — it supplies fluency and format, and the activation supplies all the content.</p>
+<p><strong>It confirms the paper's account of the bias.</strong> The authors already say the bias supplies format and the activation supplies semantics, and already show the zero-vector behaviour. Experiment 2 adds a number to that — the prior identifies nothing on its own — rather than overturning anything.</p>
 
 <p><strong>And it sets a ceiling.</strong> Experiment 7 says the nudge moves under 1% of what varies between descriptions. The signal is real; it is not loud.</p>
 
 <h3>What this is not</h3>
 <ul>
   <li><strong>Not proof the model is reading its own mind.</strong> Steering vectors are blunt instruments. We showed descriptions respond to a controlled, independently checked change — no more.</li>
-  <li><strong>We picked favourable concepts.</strong> Twice: first for being clean in the data, then for steering well without breaking fluency. Only 5 of the final 10 steered strongly.</li>
+  <li><strong>We picked favourable concepts.</strong> Twice: first for being clean in the data, then for steering well without breaking fluency. Only 5 of the final 10 steered strongly, and two of the ten are near-duplicates of each other (similarity 0.97), so there are really about 9 independent concepts.</li>
   <li><strong>It's narrow.</strong> One model, one layer, one adapter, 10 concepts, 30 topics.</li>
   <li><strong>One data problem remains</strong> (problem 2 above) and can't be removed.</li>
 </ul>

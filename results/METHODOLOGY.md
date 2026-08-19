@@ -311,8 +311,13 @@ a falsifiable prediction: a model this sensitive to small angular displacement
 
 ### 5.2 Bias-only retrieval
 
-**Why.** The paper notes that applying the adapter to a zero vector yields generic
-descriptions matching the training distribution, but does not score them.
+**Why.** *Not a novel experiment.* The paper already applies the adapter to a zero
+vector and reports generic descriptions matching the training distribution
+(Appendix J), and it already concludes that "the bias captures format while the
+vector contributes semantics" — supported by a stronger test than this one, in
+which training on ALL-CAPS labels yields both capitalised *and* semantically
+accurate outputs (Appendix I). What is added here is only a **number** for the
+half of that claim concerning instance information.
 
 **Method.** Run the full retrieval protocol on `f(0) = b`.
 
@@ -321,11 +326,17 @@ specific: *"the director of the 1967 film Blow-Up"*, *"the journalist who coined
 term 'tropism'"*, *"the opera singer whose voice was used in the recording of the
 Hallelujah Chorus"*.
 
-**Meaning.** This is the sharpest qualification of the paper's own framing. "The
-bias accounts for ~85% of the improvement" is fully compatible with the bias
-carrying **zero instance information**: it supplies format, register and confident
-fluency, and the instance term does all the identifying. It also shows the prior is
-an active confabulator, not a neutral scaffold — relevant to the paper's own
+**Meaning.** This **confirms** the paper's own account rather than qualifying it.
+The authors say the bias supplies format and the activation supplies semantics;
+0.0% R@1 puts a hard number on the second half — the bias carries *no* instance
+information whatsoever. Anyone reading "the bias accounts for ~85% of the
+improvement" in isolation might infer the prior does most of the work; the paper
+itself does not claim that, and this measurement agrees with the paper.
+
+The one thing that goes slightly beyond restatement: the zero-vector outputs are
+not merely generic, they are confidently *fabricated* — specific people, films
+and dates that do not correspond to anything. That the prior is an active
+confabulator rather than a neutral scaffold is relevant to the paper's own
 deceptive-alignment motivation.
 
 ### 5.3 Behavioural validation, doubling as concept screening
@@ -406,6 +417,36 @@ links"*, cosine 0.62). Smaller pool inflates absolute values; near-duplicates
 deflate them; both apply uniformly across λ and to all four arms, so the shape
 and the flat controls are unaffected. Fixed in `analysis.py` via `--vectors`,
 which widens the pool to all 60 screened concepts and warns when short.
+
+**The 10 swept concepts** (rise = behavioural effect from §5.3; closest = max
+cosine between its centred steering vector and the other nine):
+
+| concept | rise | closest other |
+|---|---|---|
+| awards and nominations in film and television | 0.809 | 0.13 |
+| economic terms related to taxes and subsidies | 0.780 | 0.33 |
+| experimental data and measurements re biological processes | 0.660 | 0.61 |
+| references to specific sections or equations within a paper | 0.541 | 0.36 |
+| calls to action for clicking links or buttons | 0.471 | **0.97** |
+| reading, reviewing and managing books or written content | 0.283 | 0.33 |
+| phrases that prompt clicking on links or buttons | 0.271 | **0.97** |
+| greetings and informal salutations | 0.254 | 0.61 |
+| scientific terms related to biological processes and conditions | 0.240 | 0.61 |
+| references to unspecified or vague concepts and ideas | 0.219 | 0.33 |
+
+Mean pairwise cosine across the ten steering vectors is **−0.037** — essentially
+orthogonal on average. But two are effectively the same concept (**0.971**):
+*"calls to action for clicking links or buttons"* and *"phrases that prompt user
+interaction, particularly clicking on links or buttons"*, drawn by AxBench from
+different Gemma layers so they carried distinct ids and survived every filter. A
+second pair sits at 0.61 (the two biological ones) but remains distinguishable;
+everything else is below 0.4.
+
+Consequences, all conservative: the effective number of independent concepts is
+~9, so bootstrap CIs over concepts are mildly optimistic; the duplicate pair
+occupies each other's distractor pool, depressing rather than inflating their
+scores; and the two weakest steerers (0.240, 0.219) sit barely above the style
+control's 0.153, so the aggregate leans on the stronger half.
 
 **Result — S(λ), rank vs the distractor pool (0.5 = chance):**
 

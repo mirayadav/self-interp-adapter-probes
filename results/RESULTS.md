@@ -157,10 +157,14 @@ nothing at all. The three controls that could have produced a false positive —
 random direction, style direction, and pure-`v` degeneracy — all behave as a
 genuine effect requires.
 
-**Qualifies the paper.** "The bias accounts for ~85% of the improvement" is
-compatible with the bias carrying **zero** instance information: it supplies
-format and register, and the geometry (§2) plus the bias-only retrieval (§1)
-show the instance term does all the identifying work inside a 40° cone.
+**Confirms the paper's own account of the bias.** The authors already report the
+zero-vector behaviour (Appendix J) and already conclude that the bias captures
+format while the activation contributes semantics — with a stronger test than
+ours (ALL-CAPS label training, Appendix I). Our contribution here is a number
+rather than a reframing: 0.0% R@1 shows the bias carries *no* instance
+information, which is what the paper says. Read in isolation, "~85% of the
+improvement" might suggest the prior does most of the work; the paper does not
+claim that and neither does this.
 
 **Limits.**
 - Not causal. Steering vectors are not clean semantic representations; this tests
