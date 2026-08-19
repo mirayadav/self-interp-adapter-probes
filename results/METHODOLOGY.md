@@ -403,7 +403,7 @@ Four arms:
 |---|---|---|
 | `concept` | `v̂_c` (centred) | the effect under test |
 | `random` | norm-matched random | direction-specificity vs generic perturbation response |
-| `style` | the shared component removed in §3 | response to *any real consistent* direction the model represents — a random direction cannot test this |
+| `style` | the shared component removed in §3 | **INVALID as computed** — see the correction below |
 | `pure_v` | `λ‖h‖v̂` with **no `h`** | degeneracy: where `concept ≈ pure_v`, `h` no longer matters |
 
 **Pool size — correction.** The intent was 40 distractors, and §5.3's behavioural
@@ -473,9 +473,17 @@ topic-ness falls, and falls further than controls.
    makes the description more like the concept; subtracting it makes it less.
 2. `random` flat ⇒ direction-specific, not a magnitude response. The control that
    could have killed the result does not.
-3. `style` flat ⇒ the model does not drift concept-ward for *any* real direction,
-   only this one. This is the control the random arm cannot substitute for, and it
-   exists only because the audit in §3 found the confound.
+3. **`style` — WITHDRAWN, invalid.** Its 0.500 is arithmetic, not measurement. The
+   style direction is ONE vector shared by all concepts, so for a given (topic, λ)
+   the arm emits the *identical* description for all 10 concepts (verified: 10
+   concepts → 1 distinct string). Scoring that one description against all 10
+   targets, each against the other 9, counts every ordered pair exactly once:
+   C(10,2)/(10·9) = 45/90 = 0.5 whatever the description says. It would read 0.500
+   even if style had shoved every description toward one concept. Excluded from the
+   conclusion. Only `style` is affected — `random` and `pure_v` use a different
+   direction per concept, so their descriptions differ and nothing cancels.
+   `analysis.py` now draws distractors disjoint from the targets; numbers here
+   predate that fix.
 4. `pure_v` saturates at λ=0.3 and never moves, while `concept` climbs gradually
    (0.558 → 0.640 → 0.723). At λ=0.3, concept 0.558 ≪ pure_v 0.796, so `h` still
    dominates; by λ=2 they converge and `h` is washed out. **The informative regime

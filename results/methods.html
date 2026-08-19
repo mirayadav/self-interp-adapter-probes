@@ -634,7 +634,7 @@ footer{
 <thead><tr><th>Control</th><th>The worry it rules out</th></tr></thead>
 <tbody>
 <tr><td><b>a random direction</b></td><td>"the description changes if you disturb the activation <em>at all</em>" — nothing to do with meaning</td></tr>
-<tr><td><b>the shared-voice direction</b><br><span class="note">(the one we removed in exp. 3)</span></td><td>"the description follows <em>any</em> real, consistent direction" — a random direction can't test this, because the model has never represented one</td></tr>
+<tr><td><b>the shared-voice direction</b><br><span class="note">(the one we removed in exp. 3)</span></td><td>intended to test "the description follows <em>any</em> real, consistent direction" — but this arm turned out to be broken, see below</td></tr>
 <tr><td><b>the direction alone, no activation</b></td><td>"at high strength the activation is drowned out and the model is just reading the nudge"</td></tr>
 </tbody></table></div>
 
@@ -667,12 +667,24 @@ footer{
 <tr><td class="num">+2.0</td><td class="num"><b>0.779</b></td><td class="num flat">0.502</td><td class="num flat">0.500</td><td class="num">0.796</td></tr>
 </tbody></table></div>
 
-<p>Reading across: the <strong>concept</strong> column climbs steadily and moves <em>both ways</em> — push the activation toward the concept and the description follows; push it away and the description moves away. Meanwhile <strong>both controls sit flat at 0.50</strong> and never budge.</p>
+<p>Reading across: the <strong>concept</strong> column climbs steadily and moves <em>both ways</em> — push the activation toward the concept and the description follows; push it away and the description moves away. The <strong>random</strong> control sits flat and never budges, which is the key comparison.</p>
+
+<div class="fm">
+  <div class="tag">correction · this control is broken</div>
+  <h5>The shared-voice column is 0.500 by arithmetic, not by measurement</h5>
+  <p>Look at how exact it is — 0.5000 at every single strength. That is not what a measurement looks like, and chasing it down showed why.</p>
+  <p>The shared-voice direction is <em>one vector</em>, the same for all ten concepts. So for a given topic and strength, this arm generates the <strong>identical description</strong> ten times over. We then score that one description against each of the ten concepts in turn, each against the other nine — and that is forced to average to exactly a half. Every "concept A beats concept B" is matched by a "concept B loses to concept A", so the wins and losses cancel by construction.</p>
+  <p><strong>It would read 0.500 even if the shared direction had shoved every description hard toward one concept.</strong> The column contains no information, and we exclude it from the conclusion. The fix is to draw the comparison pool from concepts outside the ten being tested, so wins and losses can no longer cancel; the code now does this, but the numbers above predate it.</p>
+</div>
 
 <p>The last column is the honest caveat. Feeding the nudge <em>alone</em> jumps straight to 0.796 and stays there. At λ=0.3 the real experiment is at 0.558 — far below that — so the activation is still doing most of the work. But by λ=2 the two have converged, meaning the activation has been drowned out.</p>
 
 <div class="take">
-  <p><strong>The description tracks the activation</strong>, specifically and in both directions, and neither a random direction nor a real-but-wrong one produces the same effect. Trust the range up to λ≈1; past that the model is just reading the nudge.</p>
+  <p><strong>The description tracks the activation</strong>, specifically and in both directions, and a random direction does not produce the same effect. Trust the range up to λ≈1; past that the model is just reading the nudge.</p>
+</div>
+
+<div class="take warn">
+  <p><strong>What the broken control costs us.</strong> The random column still rules out the biggest worry — that descriptions shift whenever you disturb the activation at all. But the shared-voice column was there to rule out something subtler: that descriptions follow <em>any</em> direction the model genuinely represents, not this concept in particular. That question is now unanswered. A random direction cannot stand in for it, because the model has never represented one.</p>
 </div>
 
 <h3>6 · Does it notice at the same point that behaviour changes?</h3>

@@ -234,18 +234,30 @@ def main():
     # only those gives a 9-way comparison. Prefer the full screened set from
     # --vectors so the pool is the requested size and not dominated by the
     # handful of concepts that happen to have been swept.
-    labels = list(swept)
+    # Distractors MUST come from concepts that are not themselves scored as
+    # targets. Otherwise an arm that produces the SAME description for every
+    # concept (the style arm does -- the style direction is one shared vector)
+    # is pinned to exactly 0.5 by symmetry: summing "target i beats distractor j"
+    # over all targets counts each ordered pair once, giving C(n,2)/(n*(n-1))
+    # = 0.5 no matter what the description says. Disjoint target/distractor sets
+    # remove that artifact.
+    extra = []
     if a.vectors and os.path.exists(a.vectors):
         blob = torch.load(a.vectors, weights_only=False)
-        labels = sorted(set(labels) | set(blob["labels"].values()))
-        print(f"distractor pool drawn from {len(labels)} screened concepts")
+        extra = sorted(set(blob["labels"].values()) - set(swept))
+    if not extra:
+        print("[WARN] no out-of-set distractors available -- falling back to the "
+              "swept labels themselves. Any arm with a shared description across "
+              "concepts (e.g. `style`) will read exactly 0.5 by construction and "
+              "is UNINFORMATIVE. Pass --vectors to fix.")
+        extra = list(swept)
+    labels = sorted(set(swept) | set(extra))
     L = emb.encode(labels)
     lab_i = {l: i for i, l in enumerate(labels)}
-    avail = len(labels) - 1
-    if avail < a.n_distractors:
-        print(f"[WARN] only {avail} distractors available but {a.n_distractors} "
-              f"requested; scoring is a {avail}-way comparison. Pass --vectors "
-              f"to widen the pool.")
+    print(f"scoring {len(swept)} targets against {len(extra)} out-of-set distractors")
+    if len(extra) < a.n_distractors:
+        print(f"[WARN] only {len(extra)} distractors available but "
+              f"{a.n_distractors} requested.")
 
     # S(lambda): rank of the true concept against a fixed distractor pool
     rng = np.random.default_rng(0)
@@ -253,7 +265,7 @@ def main():
     S_rank = np.full(len(df), np.nan)
     for lab in swept:
         m = (df.label == lab).values
-        others = [i for l, i in lab_i.items() if l != lab]
+        others = [lab_i[l] for l in extra if l != lab]
         pool = rng.permutation(others)[:a.n_distractors]
         ct = E[m] @ L[lab_i[lab]]
         cd = E[m] @ L[pool].T

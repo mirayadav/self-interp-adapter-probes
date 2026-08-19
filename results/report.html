@@ -250,7 +250,7 @@ footer{
   <div class="legend">
     <span><i class="swatch" style="border-color:var(--signal); border-top-width:3px"></i>concept</span>
     <span><i class="swatch" style="border-color:var(--flat)"></i>random direction</span>
-    <span><i class="swatch" style="border-color:var(--flat); border-top-style:dotted"></i>style direction</span>
+    <span><i class="swatch" style="border-color:var(--flat); border-top-style:dotted"></i>style direction <b style="color:var(--amber)">(invalid — see below)</b></span>
     <span><i class="swatch" style="border-color:var(--amber); border-top-style:dashed"></i>pure v (no h)</span>
   </div>
   <figcaption>Ten behaviourally-screened concepts × 30 topics × 11 values of λ × 6 generations. Only the concept arm moves.</figcaption>
@@ -260,7 +260,7 @@ footer{
 
 <p><strong>Random direction — flat (0.498–0.509).</strong> This is the control that could have killed the result. If descriptions shifted as much for a norm-matched random vector, the effect would be a generic response to perturbation rather than to meaning. It doesn't.</p>
 
-<p><strong>Style direction — flat (0.500).</strong> The stronger control, and one we only knew to add after finding the confound below. A random direction is not something the model represents; the AxBench style direction <em>is</em>. Its flatness separates "responds to any real consistent direction" from "responds to this concept" — a question the random arm alone cannot answer.</p>
+<p><strong>Style direction — withdrawn.</strong> This was intended as the stronger control, and I reported its flatness as evidence. It isn't. The style direction is a single vector shared by every concept, so for a given topic it produces the <em>same</em> description for all ten — and scoring one description against all ten targets, each against the other nine, is forced to average to exactly 0.5 by symmetry, whatever the description says. Its 0.500 is arithmetic, not measurement. It would read 0.500 even if the style direction had shoved every description toward one concept. <strong>This arm supports nothing and is excluded from the conclusion.</strong></p>
 
 <p><strong>Pure <span class="mono">v</span> — saturates instantly.</strong> Feeding <span class="mono">λv</span> with no <span class="mono">h</span> jumps to 0.796 at λ=0.3 and never moves. The concept arm instead climbs gradually (0.558 → 0.640 → 0.723), so <span class="mono">h</span> is still doing most of the work at low λ. By λ=2.0 the two converge and <span class="mono">h</span> has been washed out. <strong>The informative regime is λ ≲ 1;</strong> past that the model is merely describing <span class="mono">v</span>.</p>
 

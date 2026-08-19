@@ -82,11 +82,17 @@ fluency-preserving concepts × 30 topics × 11 λ × 6 generations.
 2. **`random` is flat** (0.498–0.509 across the whole range). The effect is
    direction-specific, not a response to perturbation magnitude. The control that
    could have killed the result does not.
-3. **`style` is flat** (0.500 everywhere) — and this is the stronger control. The
-   style direction is a *real* direction the model represents, unlike a random one.
-   SelfIE does not drift concept-ward for it. This separates "responds to any
-   consistent real direction" from "responds to this concept", which the random
-   arm alone cannot do.
+3. **`style` — WITHDRAWN, invalid.** Its 0.500 is arithmetic, not measurement. The
+   style direction is ONE vector shared by all concepts, so for a given (topic, λ)
+   the arm emits the *identical* description for all 10 concepts (verified: 10
+   concepts → 1 distinct string). Scoring that one description against all 10
+   targets, each against the other 9, counts every ordered pair exactly once:
+   C(10,2)/(10·9) = 45/90 = 0.5 whatever the description says. It would read 0.500
+   even if style had shoved every description toward one concept. Excluded from the
+   conclusion. Only `style` is affected — `random` and `pure_v` use a different
+   direction per concept, so their descriptions differ and nothing cancels.
+   `analysis.py` now draws distractors disjoint from the targets; numbers here
+   predate that fix.
 4. **`pure_v` saturates instantly** (0.796 at λ=0.3, flat thereafter) whereas
    `concept` climbs gradually. At λ=0.3 concept is 0.558 vs pure_v 0.796, so `h`
    is still doing most of the work; by λ=2.0 they converge (0.779 vs 0.796) and
@@ -153,9 +159,14 @@ dominated by `h`'s identity and by sampling noise at temperature 0.5.
 **Supports the paper.** Interpretations are *not* prior-anchored. They track
 controlled changes to `h` in a direction-specific, bidirectional way, at the same
 intervention strength that moves behaviour. The prior alone (§1) identifies
-nothing at all. The three controls that could have produced a false positive —
-random direction, style direction, and pure-`v` degeneracy — all behave as a
-genuine effect requires.
+nothing at all. **Two** valid controls behave as a genuine effect requires: the
+norm-matched random direction stays flat, and pure-`v` shows `h` still dominates
+below λ≈1.
+
+**One control is withdrawn**, which leaves a real gap. The random arm rules out a
+generic reaction to *any* perturbation, but nothing that survives distinguishes
+"tracks this concept" from "tracks any direction the model actually represents" —
+that was the style arm's job and it was computed invalidly.
 
 **Confirms the paper's own account of the bias.** The authors already report the
 zero-vector behaviour (Appendix J) and already conclude that the bias captures
