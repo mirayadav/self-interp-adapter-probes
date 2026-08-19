@@ -518,7 +518,11 @@ footer{
 
 <h4>What those two columns actually measure</h4>
 
-<p><strong>"Concept present"</strong> — embed the model's answer, then compare it to the concept's own description <em>and</em> to 40 other concept descriptions drawn from the 60 that survived screening. The score is the fraction of those 40 it beats. So 1.0 means the answer is closer to the right concept than to any alternative, and <strong>0.5 is a coin flip</strong>. We score it relatively rather than absolutely on purpose: a raw similarity score creeps upward whenever text just gets longer or vaguer, which would look like success. Ranking against alternatives cancels that out.</p>
+<p><strong>"Concept present"</strong> — the score is essentially a multiple-choice question. Embed the model's answer, then compare it to the concept's own description and to <strong>40 other concept descriptions</strong>. The score is the fraction of those 40 that the right one beats. 1.0 means the answer is closer to the right concept than to any alternative; <strong>0.5 is a coin flip</strong>.</p>
+
+<p><strong>Why bother with the alternatives at all?</strong> Because the obvious approach — just measure similarity to the right concept — is not trustworthy. That number drifts upward whenever text merely gets longer or vaguer, so ordinary waffle would register as success. Adding wrong answers fixes it: generic drift lifts the right answer and the wrong answers together, so it cancels out and shows as no change. Only a genuine move toward <em>this</em> concept beats the alternatives.</p>
+
+<p class="note">Note the counts here: this screen tested <strong>all 60</strong> shortlisted concepts, each scored against 40 alternatives drawn from the other 59. The set of 10 comes later — 11 of the 60 survived the coherence gate, and the strongest 10 went forward to experiment 5.</p>
 
 <p><strong>"Still coherent"</strong> — the fraction of adjacent word pairs in the answer that aren't repeats. 1.0 means nothing repeats; a low score means the model is looping.</p>
 
@@ -637,6 +641,19 @@ footer{
 <h4>What we found</h4>
 
 <p class="note">The comparison pool is drawn once per concept with a fixed seed and reused for every topic, every nudge strength and every control arm — so each column below is scored against exactly the same alternatives. Nothing verifies that the alternatives are semantically unrelated; they are simply the <em>other</em> concepts, which is why near-duplicates can appear.</p>
+
+<p><strong>All four columns measure the same thing</strong> — how much the model's self-description looks like the concept, scored exactly as in experiment 4 (fraction of alternatives beaten, 0.50 = chance). The only difference between columns is what was added to the activation before asking the model to describe it:</p>
+
+<div class="tablewrap"><table>
+<thead><tr><th>Column</th><th>What the model was given to describe</th></tr></thead>
+<tbody>
+<tr><td><b>concept</b></td><td>the activation, plus the concept direction</td></tr>
+<tr><td><b>random</b></td><td>the activation, plus a meaningless direction</td></tr>
+<tr><td><b>shared voice</b></td><td>the activation, plus the style direction removed in experiment 3</td></tr>
+<tr><td><b>nudge alone</b></td><td>the concept direction only — <em>no activation at all</em></td></tr>
+</tbody></table></div>
+
+<p class="note">One caveat on comparing across experiments: experiment 4 scored against 40 alternatives, this one against 9 (see the correction above). The λ comparison in experiment 6 puts those two curves side by side, so they are not on perfectly identical scales — measuring each curve against its own half-maximum absorbs most of that, but not all.</p>
 
 <div class="tablewrap"><table>
 <caption>Higher = description looks more like the concept · 0.50 = coin flip</caption>
