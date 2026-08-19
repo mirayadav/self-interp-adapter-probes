@@ -1,0 +1,18 @@
+{
+  "n": 33600,
+  "n_unique_texts": 13824,
+  "published_pooled": {
+    "n": 33600,
+    "second_moment": 1.0,
+    "prior_share": 0.7207376956939697,
+    "variance_share": 0.27926260232925415,
+    "factors": {
+      "concept": 0.013882986779733118,
+      "topic": 0.37767184772356815,
+      "lam": 0.007399434467804853,
+      "residual": 0.6010457310288939
+    }
+  },
+  "lam_within_concept": 0.05486456609348707,
+  "ratio_within_over_pooled": 7.414697208577809
+}

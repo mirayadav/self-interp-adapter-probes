@@ -83,6 +83,37 @@ def decompose(E: np.ndarray, factors: dict[str, np.ndarray]) -> dict:
     return out
 
 
+def within_share(E: np.ndarray, inner: np.ndarray, outer: np.ndarray) -> float:
+    """Share of variance explained by `inner`, estimated inside each `outer` group.
+
+    A pooled main effect is only valid when every level of `outer` moves the
+    embeddings the same way. For the lambda sweep it does not: each concept
+    steers along its own direction, and after mean-centring those directions
+    are near-orthogonal, so averaging across concepts cancels the displacement
+    and drives the estimate toward zero regardless of the true effect size.
+    Comparing each inner group to its own outer group's mean never averages
+    across concepts, so nothing cancels.
+
+    On the 40-concept sweep this is the difference between 0.74% (pooled) and
+    5.5% (within concept) for the steering coefficient.
+    """
+    ebar = E.mean(0)
+    var_total = float(((E - ebar) ** 2).sum(1).mean())
+    if var_total <= 0:
+        return float("nan")
+    ss = 0.0
+    for o in np.unique(outer):
+        mo = outer == o
+        obar = E[mo].mean(0)
+        for i in np.unique(inner):
+            m = mo & (inner == i)
+            if not m.any():
+                continue
+            d = E[m].mean(0) - obar
+            ss += m.sum() * float(d @ d)
+    return ss / len(E) / var_total
+
+
 def _selftest():
     """Synthetic data with ANALYTICALLY derived ground truth.
 
@@ -348,8 +379,12 @@ def main():
 
     # variance decomposition on the concept arm
     ca = df[df.arm == "concept"]
-    dec = decompose(E[ca.index.values], {
+    Ec = E[ca.index.values]
+    dec = decompose(Ec, {
         "concept": ca.uid.values, "topic": ca.topic.values, "lam": ca.lam.values})
+    # The pooled lam main effect above cancels across concepts; see within_share.
+    dec["factors"]["lam_within_concept"] = within_share(
+        Ec, ca.lam.values, ca.uid.values)
 
     # sensitivity comparison
     sens = {}
