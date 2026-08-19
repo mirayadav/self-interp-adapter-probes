@@ -139,6 +139,36 @@ td.num,th.num{text-align:right; font-family:"IBM Plex Mono",monospace; font-vari
 tr.hi td{background:var(--signal-wash)} tr.hi td:first-child{font-weight:600}
 td.flat{color:var(--ink-faint)}
 
+/* numbered how-it-works steps */
+.steps{counter-reset:st; margin:20px 0; padding:0; list-style:none}
+.steps li{
+  counter-increment:st; position:relative; padding-left:38px; margin-bottom:11px; font-size:15.5px;
+}
+.steps li::before{
+  content:counter(st); position:absolute; left:0; top:1px;
+  font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--signal);
+  border:1px solid var(--rule); border-radius:99px; width:24px; height:24px;
+  display:flex; align-items:center; justify-content:center; background:var(--surface);
+}
+
+/* worked examples */
+.egs{
+  border:1px solid var(--rule); border-radius:4px; background:var(--surface);
+  box-shadow:var(--shadow); overflow:hidden; margin:20px 0;
+}
+.eg{padding:13px 17px; border-bottom:1px solid var(--rule)}
+.eg:last-child{border-bottom:0}
+.eg .hd{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:4px}
+.eg .topic{font-weight:600; font-size:15px}
+.eg .verdict{
+  font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.1em;
+  text-transform:uppercase; padding:2px 8px; border-radius:99px;
+}
+.eg .verdict.hit{color:var(--signal); background:var(--signal-wash)}
+.eg .verdict.miss{color:var(--amber); background:var(--amber-wash)}
+.eg .quote{font-size:14.5px; color:var(--ink-soft); line-height:1.5}
+.eg .why{font-size:14px; margin-top:6px}
+
 /* problem blocks */
 .fm{
   background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--amber);
@@ -247,6 +277,52 @@ footer{
 
 <h4>What we did</h4>
 <p>Took 1,000 Wikipedia topics the adapter had never seen. For each: prompt the model with <em>"Tell me about {topic}"</em>, grab the activation at layer 19, run it through the adapter, inject it, and let the model write 6 descriptions. Then check whether those descriptions are enough to identify the original topic out of all <strong>49,637</strong> candidates.</p>
+
+<h4>How "identify the topic" is actually checked</h4>
+
+<p>Nothing compares strings, and nothing checks whether the description mentions the topic by name. It's all done by meaning:</p>
+
+<ol class="steps">
+  <li><strong>Build an index once.</strong> Each of the 49,637 topics becomes a short document — its title plus its first 8 alternate descriptions from the dataset. All of them get converted into vectors by a sentence-embedding model.</li>
+  <li><strong>Convert each generated description</strong> into a vector the same way.</li>
+  <li><strong>Compare it against all 49,637 documents</strong> and sort them from most to least similar.</li>
+  <li><strong>Find where the true topic landed</strong> in that ranking.</li>
+  <li><strong>Best of 6:</strong> the topic counts as identified if <em>any</em> of its six descriptions ranked it inside the cutoff.</li>
+</ol>
+
+<p>So the three result columns are just three cutoffs:</p>
+
+<div class="tablewrap"><table>
+<thead><tr><th>Column</th><th>Means</th><th class="num">By luck alone</th></tr></thead>
+<tbody>
+<tr><td><b>Top guess</b></td><td>the single closest topic out of 49,637 is the right one</td><td class="num flat">0.002%</td></tr>
+<tr><td><b>Top 5</b></td><td>the right topic is among the 5 closest</td><td class="num flat">0.01%</td></tr>
+<tr><td><b>Top 100</b></td><td>among the 100 closest</td><td class="num flat">0.2%</td></tr>
+</tbody></table></div>
+
+<p>Those luck figures matter for reading the table below: the untrained version's 2.0% at top-100 is about ten times chance, but still essentially nothing.</p>
+
+<h4>What that looks like in practice</h4>
+
+<div class="egs">
+  <div class="eg">
+    <div class="hd"><span class="topic">Robert Menzies</span><span class="verdict hit">identified</span></div>
+    <div class="quote">"Robert Menzies, Australian prime minister from 1939 to 1941 and 1949 to 1966"</div>
+    <div class="why">Five of six descriptions name him with correct dates, so they land almost exactly on his index document. Ranks first.</div>
+  </div>
+  <div class="eg">
+    <div class="hd"><span class="topic">John Dory</span><span class="verdict hit">identified</span></div>
+    <div class="quote">"the fish John Dory"</div>
+    <div class="why">Short, but unambiguous — it matches the document about the fish and nothing else.</div>
+  </div>
+  <div class="eg">
+    <div class="hd"><span class="topic">Chu Suiliang</span><span class="verdict miss">missed</span></div>
+    <div class="quote">"Chen Shou, the Eastern Jin historian who compiled the Records of the Three Kingdoms"</div>
+    <div class="why">A real person, but the <em>wrong</em> one — so this retrieves Chen Shou's document instead. This is what the missing 20.7% looks like: fluent, confident, plausibly Chinese-historical, and wrong.</div>
+  </div>
+</div>
+
+<p class="note"><strong>Two caveats on the metric.</strong> Best-of-6 flatters it — a topic only needs one of six attempts to succeed, so single-shot accuracy would be noticeably lower. (The paper generates 6 candidates too, by varying the injection strength where we vary by sampling, so the comparison to their number is fair.) And because matching is by meaning rather than by name, a description that never says the topic's name can still rank it first — which is the point, since the model is describing an activation, not reading a label.</p>
 
 <p>We ran three versions to separate out what's doing the work:</p>
 

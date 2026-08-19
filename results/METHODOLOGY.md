@@ -169,6 +169,43 @@ subtract the mean vector, apply the adapter, inject, sample 6 descriptions, embe
 each, and count a hit@k if **any** of the 6 lands the true topic in the top k
 (best-of-6, matching the paper's multi-candidate protocol).
 
+**How "identify the topic" is checked.** Nothing compares strings, and nothing
+requires the description to name the topic:
+
+1. Build an index once — each of the 49,637 topics becomes a document (title +
+   first 8 alternate labels), embedded with GTE-large into a unit vector.
+2. Embed each generated description the same way.
+3. Cosine-similarity it against all 49,637 documents (a dot product, since
+   everything is unit-length) and sort descending.
+4. Find the rank of the true topic in that list; hit@k if rank < k.
+5. Best-of-6 — the topic counts as a hit if *any* of its six descriptions hits.
+
+So the columns are three cutoffs, against these chance rates:
+
+| column | meaning | by luck |
+|---|---|---|
+| R@1 | the single nearest of 49,637 is correct | 0.002% |
+| R@5 | correct topic among the 5 nearest | 0.010% |
+| R@100 | among the 100 nearest | 0.201% |
+
+The untrained arm's 2.0% at R@100 is ~10x chance but still negligible.
+
+Worked examples from `results/repro_generations.parquet`:
+
+- **Robert Menzies** — *hit*. Five of six say "Robert Menzies, Australian Prime
+  Minister from 1939 to 1941 and 1949 to 1966"; embeds almost onto his document.
+- **John Dory** — *hit*. "the fish John Dory" is short but unambiguous.
+- **Chu Suiliang** — *miss*. All six say "Chen Shou, the Eastern Jin historian
+  who compiled the Records of the Three Kingdoms" — a real person, but the wrong
+  one, so it retrieves Chen Shou instead. This is what the missing 20.7% looks
+  like: fluent, confident, plausibly Chinese-historical, and wrong.
+
+Two caveats on the metric. **Best-of-6 flatters it** — single-shot accuracy would
+be noticeably lower; the paper also uses 6 candidates (varying injection scale
+where we vary by sampling), so the comparison to their figure is fair. And
+because matching is semantic, a description that never names the topic can still
+rank it first — which is the point, since the model is describing an activation.
+
 Three arms, identical topics and seeds:
 - `trained` — the released adapter
 - `untrained` — `f(h) = 1.0 · h/‖h‖`, i.e. scale-only at unit scale (the paper's
