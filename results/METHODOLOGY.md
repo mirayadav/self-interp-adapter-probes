@@ -382,7 +382,7 @@ independently validated change to `h`?
 `soft = f(h_contrastive + λ‖h‖v̂)`. Injection scale is **held fixed across λ** so
 the paper's best-of-n scale search cannot be confused with the λ effect.
 
-Scored as **rank against a fixed 40-distractor concept pool** rather than raw
+Scored as **rank against a fixed pool of other concept labels** rather than raw
 cosine — raw cosine drifts upward whenever descriptions merely get longer or more
 generic, which would read as a false positive.
 
@@ -395,7 +395,19 @@ Four arms:
 | `style` | the shared component removed in §3 | response to *any real consistent* direction the model represents — a random direction cannot test this |
 | `pure_v` | `λ‖h‖v̂` with **no `h`** | degeneracy: where `concept ≈ pure_v`, `h` no longer matters |
 
-**Result — S(λ), rank vs 40 distractors (0.5 = chance):**
+**Pool size — correction.** The intent was 40 distractors, and §5.3's behavioural
+screen did use 40 (drawn from all 60 screened concepts). But `analysis.py` built
+the sweep's pool from the labels present in `sweep.parquet`, which contains only
+the 10 swept concepts — so S(λ) is a **9-way** comparison, not 40-way. The pool
+is drawn once per concept with a fixed seed and reused across every topic, λ and
+arm. Nothing enforces semantic distance: the 10 include near-duplicates
+(*"calls to action for clicking links"* vs *"phrases that prompt clicking on
+links"*, cosine 0.62). Smaller pool inflates absolute values; near-duplicates
+deflate them; both apply uniformly across λ and to all four arms, so the shape
+and the flat controls are unaffected. Fixed in `analysis.py` via `--vectors`,
+which widens the pool to all 60 screened concepts and warns when short.
+
+**Result — S(λ), rank vs the distractor pool (0.5 = chance):**
 
 | λ | concept | random | style | pure_v |
 |---|---|---|---|---|

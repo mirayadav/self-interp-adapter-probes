@@ -41,6 +41,7 @@ from typing import Optional, Sequence
 
 import numpy as np
 import pandas as pd
+import torch
 
 
 # ------------------------------------------------------- variance decomposition
@@ -210,6 +211,8 @@ def main():
     ap.add_argument("--behavioral", default="results/behavioral.parquet")
     ap.add_argument("--embedder", default="thenlper/gte-large")
     ap.add_argument("--n-distractors", type=int, default=40)
+    ap.add_argument("--vectors", default="results/concept_vectors.pt",
+                    help="widen the distractor pool to all screened concepts")
     ap.add_argument("--out", default="results/analysis.json")
     ap.add_argument("--curves-out", default="results/curves.parquet")
     a = ap.parse_args()
@@ -225,15 +228,30 @@ def main():
     print(f"{len(df)} generations | arms {sorted(df.arm.unique())}")
 
     E = emb.encode(df.desc.fillna("").tolist())
-    labels = sorted(df[df.uid != "__BIAS__"].label.unique())
+    swept = sorted(df[df.uid != "__BIAS__"].label.unique())
+
+    # Distractor pool. The swept set is small (10 concepts), so scoring against
+    # only those gives a 9-way comparison. Prefer the full screened set from
+    # --vectors so the pool is the requested size and not dominated by the
+    # handful of concepts that happen to have been swept.
+    labels = list(swept)
+    if a.vectors and os.path.exists(a.vectors):
+        blob = torch.load(a.vectors, weights_only=False)
+        labels = sorted(set(labels) | set(blob["labels"].values()))
+        print(f"distractor pool drawn from {len(labels)} screened concepts")
     L = emb.encode(labels)
     lab_i = {l: i for i, l in enumerate(labels)}
+    avail = len(labels) - 1
+    if avail < a.n_distractors:
+        print(f"[WARN] only {avail} distractors available but {a.n_distractors} "
+              f"requested; scoring is a {avail}-way comparison. Pass --vectors "
+              f"to widen the pool.")
 
     # S(lambda): rank of the true concept against a fixed distractor pool
     rng = np.random.default_rng(0)
     S_cos = np.full(len(df), np.nan)
     S_rank = np.full(len(df), np.nan)
-    for lab in labels:
+    for lab in swept:
         m = (df.label == lab).values
         others = [i for l, i in lab_i.items() if l != lab]
         pool = rng.permutation(others)[:a.n_distractors]

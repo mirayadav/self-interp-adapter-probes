@@ -515,7 +515,7 @@ footer{
 
 <h4>What those two columns actually measure</h4>
 
-<p><strong>"Concept present"</strong> — embed the model's answer, then compare it to the concept's own description <em>and</em> to 40 unrelated concept descriptions. The score is the fraction of those 40 it beats. So 1.0 means the answer is closer to the right concept than to any alternative, and <strong>0.5 is a coin flip</strong>. We score it relatively rather than absolutely on purpose: a raw similarity score creeps upward whenever text just gets longer or vaguer, which would look like success. Ranking against alternatives cancels that out.</p>
+<p><strong>"Concept present"</strong> — embed the model's answer, then compare it to the concept's own description <em>and</em> to 40 other concept descriptions drawn from the 60 that survived screening. The score is the fraction of those 40 it beats. So 1.0 means the answer is closer to the right concept than to any alternative, and <strong>0.5 is a coin flip</strong>. We score it relatively rather than absolutely on purpose: a raw similarity score creeps upward whenever text just gets longer or vaguer, which would look like success. Ranking against alternatives cancels that out.</p>
 
 <p><strong>"Still coherent"</strong> — the fraction of adjacent word pairs in the answer that aren't repeats. 1.0 means nothing repeats; a low score means the model is looping.</p>
 
@@ -578,8 +578,15 @@ footer{
 <h4>The question</h4>
 <p>Everything so far was setup. Now: take an activation, add the concept direction at increasing strength, and see whether the self-description follows.</p>
 
+<h4>Two different things, easy to confuse</h4>
+<p><strong>Topics</strong> are Wikipedia articles — <em>Chu Suiliang</em>, <em>Robert Menzies</em>, <em>John Dory</em>. They supply the activation being described. There are 30 of them, from the same dataset as Part 1.</p>
+<p><strong>Concepts</strong> are the steering directions — <em>"economic terms related to taxes and subsidies"</em>. They supply the nudge. There are 10, from AxBench, built in experiment 3.</p>
+<p>Every topic is crossed with every concept: 10 × 30 = 300 combinations, each at 11 nudge strengths, each generating 6 descriptions, across 4 versions of the experiment.</p>
+
 <h4>What we did</h4>
-<p>10 concepts × 30 topics × 11 nudge strengths × 6 descriptions each. For scoring, we didn't just ask "does this description look like the concept" — that number creeps up whenever text gets longer or vaguer. Instead we asked <strong>does it look more like the right concept than like 40 unrelated ones</strong>. That way generic drift lifts everything equally and shows up as no change.</p>
+<p>For scoring, we didn't just ask "does this description look like the concept" — that number creeps up whenever text gets longer or vaguer. Instead we asked <strong>does it look more like the right concept than like the other concepts</strong>. Generic drift then lifts everything equally and shows up as no change.</p>
+
+<p class="note"><strong>Correction worth stating plainly.</strong> We intended to compare against 40 other concepts, and the behavioural screen in experiment 4 did exactly that. But the sweep's scoring only had the 10 swept concepts available to draw from, so it was in fact a <strong>9-way</strong> comparison, not 40-way. Two effects, pulling opposite ways: a smaller pool is easier to win, which inflates the absolute numbers; but the 10 include near-duplicates (<em>"calls to action for clicking links"</em> versus <em>"phrases that prompt clicking on links"</em>, 0.62 similar), which makes it harder. Both apply identically at every nudge strength and to every control, so the <em>shape</em> of the result — and the flat controls — are unaffected. The absolute values should be read as approximate.</p>
 
 <p>Critically, we ran three <strong>control</strong> versions alongside. These are the experiment; the main line alone would prove little.</p>
 
@@ -592,6 +599,8 @@ footer{
 </tbody></table></div>
 
 <h4>What we found</h4>
+
+<p class="note">The comparison pool is drawn once per concept with a fixed seed and reused for every topic, every nudge strength and every control arm — so each column below is scored against exactly the same alternatives. Nothing verifies that the alternatives are semantically unrelated; they are simply the <em>other</em> concepts, which is why near-duplicates can appear.</p>
 
 <div class="tablewrap"><table>
 <caption>Higher = description looks more like the concept · 0.50 = coin flip</caption>
