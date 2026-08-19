@@ -1,0 +1,10 @@
+{
+  "factors": {
+    "topic": 0.37767184772356815,
+    "concept": 0.013882986779733118,
+    "lam": 0.05486456609348707,
+    "residual": 0.5535805994032117
+  },
+  "prior_share": 0.7207376956939697,
+  "note": "lambda estimated within concept; interaction moved out of residual"
+}

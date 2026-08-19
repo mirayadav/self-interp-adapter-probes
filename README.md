@@ -71,14 +71,14 @@ gross changes would give a flatter, later curve.
 
 **But the activation's identity still dominates.** Variance decomposition of the
 description embeddings: prior 72.1% of a typical soft token; within the remaining
-spread, topic identity 37.8%, concept 1.39%, sampling noise 60.1%.
+spread, topic identity 37.8%, lambda 5.5%, concept 1.39%, sampling noise 55.4%.
 
-The lambda share needs care. Estimated as a main effect pooled across concepts it
-reads 0.74%, but that pooling averages 40 near-orthogonal steering directions and
-cancels most of the effect. Estimated within concept (`within_share` in
-`analysis.py`) it is **5.5%**, 7.4x larger; see `results/variance_recompute.json`.
-Topic identity still dominates either way. Noted here because the published
-write-up carries the 0.74% figure with a dated correction.
+The lambda share must be estimated **within concept** (`within_share` in
+`analysis.py`). Pooled as a main effect across concepts it reads 0.74%, because
+that averages 40 near-orthogonal steering directions and cancels most of the
+effect; the difference sits in `residual` until you attribute it. The write-up
+originally published 0.74% and now carries the corrected 5.5% with a dated
+footnote. See `results/variance_recompute.json` and `variance_corrected.json`.
 
 **Adapter geometry (laptop, no GPU).** `normalize_input=true`, so
 `f(h) = alpha*(h/||h||) + b`: the instance term has *fixed norm*. For
